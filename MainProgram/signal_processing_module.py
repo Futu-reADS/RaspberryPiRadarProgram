@@ -8,53 +8,94 @@ import threading
 import queue
 import os
 
+import datetime
+
+import filter
+import shared_variables as sv
 
 class SignalProcessing:
 
     # FFTfreq and FFTamplitude are temporary for testing FFT. Remove later
-    def __init__(self, list_of_variables_for_threads, bluetooth_server, FFTfreq, FFTamplitude):
-        self.list_of_variables_for_threads = list_of_variables_for_threads
-        self.go = list_of_variables_for_threads["go"]
-        self.HR_filtered_queue = list_of_variables_for_threads["HR_filtered_queue"]
-        self.HR_final_queue = list_of_variables_for_threads["HR_final_queue"]       # TODO ta bort
-        self.sample_freq = list_of_variables_for_threads["sample_freq"]
+#     def __init__(self, list_of_variables_for_threads, bluetooth_server, FFTfreq, FFTamplitude):
+    def __init__(self, bluetooth_server, FFTfreq, FFTamplitude):
+        self.list_of_variables_for_threads =  sv.list_of_variables_for_threads
+
+#         self.shutdown_yet =  list_of_variables_for_threads["shutdown_yet"]
+#         self.go =  list_of_variables_for_threads["go"]
+        self.HR_filtered_queue =  sv.list_of_variables_for_threads["HR_filtered_queue"]
+        self.HR_final_queue =  sv.list_of_variables_for_threads["HR_final_queue"]       # TODO ta bort
+        self.sample_freq =  sv.list_of_variables_for_threads["sample_freq"]
         self.bluetooth_server = bluetooth_server
 
         # Variables for Schmitt Trigger
-        self.RR_filtered_queue = list_of_variables_for_threads["RR_filtered_queue"]
-        self.RR_final_queue = list_of_variables_for_threads["RR_final_queue"]
+        self.RR_filtered_queue =  sv.list_of_variables_for_threads["RR_filtered_queue"]
+        self.RR_final_queue =  sv.list_of_variables_for_threads["RR_final_queue"]
         self.freqArrayTemp_last = []  # If no breathing rate is found use last value
         # print(list(self.RR_final_queue.queue))
-        self.RTB_final_queue = list_of_variables_for_threads["RTB_final_queue"]
+        self.RTB_final_queue =  sv.list_of_variables_for_threads["RTB_final_queue"]
         self.time_when_sent_last_value = None  # to check time passed after sent a value
+
+        # Variables for Blodd Pressure
+        self.HR_filtered_queue_movavg =  sv.list_of_variables_for_threads["HR_filtered_queue_movavg"]
 
         # Variables for Pulse detection
         self.index_fft = 0
         self.T_resolution = 20  # förut 30
+#         self.T_resolution = 25  # förut 30
         self.overlap = 90  # Percentage of old values for the new FFT
         self.beta = 1  # Kaiser window form
         self.tau = 12  # TODO Beskriva alla variabler
         # Data in vector with length of window
-        self.fft_window = np.zeros(self.T_resolution*self.sample_freq)  # Width in samples of FFT
+#         self.fft_window = np.zeros(self.T_resolution*self.sample_freq)  # Width in samples of FFT
+        self.fft_window = np.zeros(self.T_resolution * int(self.sample_freq))  # Width in samples of FFT
         self.window_width = int(len(self.fft_window))
         self.total_fft_length = int(1.5*self.window_width)
         # window_width_half = int(window_width/2)  # Since FFT only processes half of freq (Nyqvist)
         self.window_slide = int(np.round(self.window_width*(1-self.overlap/100)))
-        self.window_slide_global = list_of_variables_for_threads["window_slide"]
+        self.window_slide_global =  sv.list_of_variables_for_threads["window_slide"]
         self.window_slide_global = self.window_slide
         # self.freq = self.sample_freq * \
         #    np.arange(self.total_fft_length/2)/self.window_width  # Evenly spaced freq array
-        self.freq = np.linspace(0, self.sample_freq/2, num=self.total_fft_length/2)
+#         self.freq = np.linspace(0, self.sample_freq/2, num=self.total_fft_length/2)
+        self.freq = np.linspace(0, self.sample_freq/2, num=int(self.total_fft_length/2))
         self.delta_T = self.window_slide / self.sample_freq
         # int(round(self.tau / self.delta_T))  # Make tau is larger than delta_T, else it will be zero and programme will fail.
         self.number_of_old_FFT = 15
         self.FFT_old_values = np.zeros((self.number_of_old_FFT, int(
             self.total_fft_length/2)))  # Saving old values for moving mean
+
+        self.f_hea1_csv = sv.list_of_variables_for_threads["f_hea1_csv"]  # for debug
+        self.f_hea2_csv = sv.list_of_variables_for_threads["f_hea2_csv"]  # for debug
+        self.f_hea3_csv = sv.list_of_variables_for_threads["f_hea3_csv"]  # for debug
+        self.f_hea4_csv =  sv.list_of_variables_for_threads["f_hea4_csv"]
+        self.f_hea5_csv =  sv.list_of_variables_for_threads["f_hea5_csv"]
+        self.f_hea6_csv =  sv.list_of_variables_for_threads["f_hea6_csv"]
+        self.f_hea7_csv =  sv.list_of_variables_for_threads["f_hea7_csv"]
+        self.f_hea8_csv =  sv.list_of_variables_for_threads["f_hea8_csv"]
+        self.f_hea9_csv =  sv.list_of_variables_for_threads["f_hea9_csv"]
+        self.f_hea10_csv =  sv.list_of_variables_for_threads["f_hea10_csv"]
+        self.f_hea11_csv =  sv.list_of_variables_for_threads["f_hea11_csv"]
+        self.measurement_start_time =  sv.list_of_variables_for_threads["measurement_start_time"]
+
         # Starta heart_rate
         print("Start thread heart_rate")
         self.heart_rate_thread = threading.Thread(target=self.heart_rate)
         self.heart_rate_thread.start()
+
+        self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
+        self.movavg_SBP = filter.Filter('movavg', window_size_for_movavg=13)
+        self.movavg_MBP = filter.Filter('movavg', window_size_for_movavg=13)
+        self.movavg_DBP = filter.Filter('movavg', window_size_for_movavg=13)
+
+        # Starta blood_pressure
+        print("Start thread blood_pressure")
+        self.blood_pressure_thread = threading.Thread(target=self.blood_pressure)
+        self.blood_pressure_thread.start()
+
+        self.f_sch_csv =  sv.list_of_variables_for_threads["f_sch_csv"]
+
         # Starta schmitt
+        print("Start thread schmittTrigger")
         self.schmittTrigger_thread = threading.Thread(target=self.schmittTrigger)
         self.schmittTrigger_thread.start()
 
@@ -68,9 +109,9 @@ class SignalProcessing:
         self.peak_amplitude = []
         self.peak_weighted = []
         self.len_fft = 0
-        self.heart_rate_csv = list_of_variables_for_threads["heart_rate_csv"]
-        self.start_write_to_csv_time = list_of_variables_for_threads["start_write_to_csv_time"]
-        self.initiate_write_heart_rate = list_of_variables_for_threads["initiate_write_heart_rate"]
+        self.heart_rate_csv =  sv.list_of_variables_for_threads["heart_rate_csv"]
+        self.start_write_to_csv_time =  sv.list_of_variables_for_threads["start_write_to_csv_time"]
+        self.initiate_write_heart_rate =  sv.list_of_variables_for_threads["initiate_write_heart_rate"]
         self.heart_rate_reliability_csv = []
         self.heart_rate_spectrum = []
         self.heart_rate_frequency = []
@@ -79,186 +120,364 @@ class SignalProcessing:
     # Följer just nu Matlab strukturen.
 
     def heart_rate(self):  # MAIN for finding pulse
-        # print("heart_rate thread started")
-        index_in_FFT_old_values = 0  # Placement of old FFT in FFT_old_values
-        FFT_counter = 1  # In start to avg over FFT_counter before FFT_old_values is filled to max
-        found_heart_freq_old = 180/60  # Guess the first freq
-        # Variables for weigthed peaks
-        #multiplication_factor = 20
-        time_constant = 2
-        start_time = time.time()
-        first_real_value = True  # the first real heart rate found
-        old_heart_freq_list = []  # old values
-        found_peak_reliability = "None"
-        found_peak_reliability_int = 0
+        while sv.list_of_variables_for_threads["terminate_yet"]:
 
-        while self.go:
-            # print("in while loop heart_rate")
-            fft_signal_out = self.windowedFFT()
-            fft_signal_out_dB = 20*np.log10(fft_signal_out)  # As of May 7, lenght of vector is 600
-            self.FFT_old_values[index_in_FFT_old_values][:] = fft_signal_out_dB
+            if sv.list_of_variables_for_threads["is_measuring"]:
 
-            # saved_old = self.FFT_old_values[:, 2] #to print
-            # fft movemean
-            FFT_averaged = self.mean_of_old_values(FFT_counter)
-            #print("Length of averaged FFT: ", len(FFT_averaged))
-            # Returns the peaks in set inteval from averaged FFT
-            peak_freq, peak_amplitude = self.findPeaks(FFT_averaged)
-            if len(peak_freq) > 0 and np.amin(peak_amplitude) > -40 and np.amax(peak_amplitude) > -30 and time.time() - start_time > 50:
-                # In case zero peaks, use last value, and to not trigger on noise, and there is just noise before 30 seconds has passed
-                # Going into own method when tested and working staying in "main loop"
-                delta_freq = []
-                for freq in peak_freq:
-                    delta_freq.append(freq - found_heart_freq_old)
-                self.peak_weighted = []
-                close_peaks = []
-                close_disturbing_peaks = []
-                try:
-                    for i in range(0, len(peak_freq)):  # Weight the peaks found depending on their amplitude,
-                        if peak_freq[i] < 0.9:
-                            multiplication_factor = 5  # to lower the noise peak under 0.9 Hz
-                        elif peak_freq[i] < 1:
-                            multiplication_factor = 7  # to lower the noise peak under 1 Hz
-                        else:
-                            multiplication_factor = 10
-                        # distance to the last tracked peak, and on the frequency (the noise is kind of 1/f, so to to fix that multiply with f)
-                        self.peak_weighted.append(peak_amplitude[i] + multiplication_factor * np.exp(
-                            -np.abs(peak_freq[i] - found_heart_freq_old) / time_constant) * np.sqrt(
-                            np.sqrt(peak_freq[i])))
-                        if np.abs(peak_freq[i] - found_heart_freq_old) < 0.2 and np.abs(
-                                peak_amplitude[i] - found_heart_freq_amplitude_old) < 4 and (
-                                found_heart_freq_old < 1 or peak_freq[i] > 1):
-                            # To average peaks if they are close
-                            close_peaks.append(peak_freq[i])
-                        elif np.abs(peak_freq[i] - found_heart_freq_old) < 0.5 and np.abs(
-                                peak_amplitude[i] - found_heart_freq_amplitude_old) < 5:
-                            # If there is a lot of peaks to disturb the measurement
-                            close_disturbing_peaks.append(peak_freq[i])
+                # print("heart_rate thread started")
+                index_in_FFT_old_values = 0  # Placement of old FFT in FFT_old_values
+                FFT_counter = 1  # In start to avg over FFT_counter before FFT_old_values is filled to max
+                found_heart_freq_old = 180/60  # Guess the first freq
+                # Variables for weigthed peaks
+                #multiplication_factor = 20
+                time_constant = 2
+#                 start_time = time.time()
+                first_real_value = True  # the first real heart rate found
+                old_heart_freq_list = []  # old values
 
-                    found_peak_index = np.argmax(np.array(self.peak_weighted))
-                    found_heart_freq = peak_freq[found_peak_index]
-                    found_heart_freq_amplitude_old = self.peak_amplitude[found_peak_index]
+                upl_of_old_heart_freq_list = 20  # upper limit of number of elements in old_heart_freq_list
 
-                    # Determine the reliability of the found peak, if it's really the heart rate or just noise.
-                    # Compares to the next largest peak amplitude
-                    try:
-                        next_largest_peak_amplitude = np.amax(
-                            self.peak_amplitude[:found_peak_index]+self.peak_amplitude[found_peak_index+1:])
-                    except:
-                        next_largest_peak_amplitude = -35
-                    if found_heart_freq_amplitude_old - next_largest_peak_amplitude > 12:
-                        found_peak_reliability = "ExceptionalHigh"
-                        found_peak_reliability_int = 6
-                    elif found_heart_freq_amplitude_old - next_largest_peak_amplitude > 7:
-                        found_peak_reliability = "VeryHigh"
-                        found_peak_reliability_int = 5
-                    elif found_heart_freq_amplitude_old - next_largest_peak_amplitude > 4:
-                        found_peak_reliability = "High"
-                        found_peak_reliability_int = 4
-                    elif found_heart_freq_amplitude_old - next_largest_peak_amplitude > 3:
-                        found_peak_reliability = "Medium"
-                        found_peak_reliability_int = 3
+                found_peak_reliability = "None"
+                found_peak_reliability_int = 0
+                # A variable that indicates when the measurement data is stable
+                measurement_data_stable_state = False
+
+#                 while self.go:
+                while sv.list_of_variables_for_threads["is_measuring"]:
+
+                    self.f_hea1_csv =  sv.list_of_variables_for_threads["f_hea1_csv"]  # for debug
+                    self.f_hea2_csv =  sv.list_of_variables_for_threads["f_hea2_csv"]  # for debug
+                    self.f_hea3_csv =  sv.list_of_variables_for_threads["f_hea3_csv"]  # for debug
+                    self.f_hea4_csv =  sv.list_of_variables_for_threads["f_hea4_csv"]
+                    self.f_hea5_csv =  sv.list_of_variables_for_threads["f_hea5_csv"]
+                    self.f_hea6_csv =  sv.list_of_variables_for_threads["f_hea6_csv"]
+                    self.f_hea7_csv =  sv.list_of_variables_for_threads["f_hea7_csv"]
+                    self.f_hea8_csv =  sv.list_of_variables_for_threads["f_hea8_csv"]
+                    self.f_hea9_csv =  sv.list_of_variables_for_threads["f_hea9_csv"]
+                    self.f_hea10_csv =  sv.list_of_variables_for_threads["f_hea10_csv"]
+                    self.f_hea11_csv =  sv.list_of_variables_for_threads["f_hea11_csv"]
+                    self.measurement_start_time =  sv.list_of_variables_for_threads["measurement_start_time"]
+
+                    if not self.measurement_start_time:
+                        continue
                     else:
-                        found_peak_reliability = "Low"  # TODO uncertain?
-                        found_peak_reliability_int = 2
+                        start_time = self.measurement_start_time[0]
 
-                    if len(close_peaks) > 1:
-                        print('averaging, old:', found_heart_freq)
-                        found_heart_freq = np.mean(close_peaks)
+                    dt_now = datetime.datetime.now()
+                    dt_now_ = str(dt_now).replace(' ', ',')
+                    if not self.f_hea1_csv.closed:  # for debug
+                        self.f_hea1_csv.write(str(dt_now) + ' ')  # for debug
+                    if not self.f_hea2_csv.closed:  # for debug
+                        self.f_hea2_csv.write(str(dt_now) + ' ')  # for debug
+                    if not self.f_hea3_csv.closed:  # for debug
+                        self.f_hea3_csv.write(str(dt_now) + ' ')  # for debug
+                    if not self.f_hea4_csv.closed:
+                        self.f_hea4_csv.write(str(dt_now) + ' ')
+                    if not self.f_hea5_csv.closed:
+                        self.f_hea5_csv.write(str(dt_now) + ' ')
+                    if not self.f_hea6_csv.closed:
+                        self.f_hea6_csv.write(str(dt_now_) + ',')
+                    if not self.f_hea7_csv.closed:
+                        self.f_hea7_csv.write(str(dt_now_) + ',')
+                    if not self.f_hea8_csv.closed:
+                        self.f_hea8_csv.write(str(dt_now_) + ',')
+                    if not self.f_hea9_csv.closed:
+                        self.f_hea9_csv.write(str(dt_now_) + ',')
+                    if not self.f_hea10_csv.closed:
+                        self.f_hea10_csv.write(str(dt_now_) + ',')
+                    if not self.f_hea11_csv.closed:
+                        self.f_hea11_csv.write(str(dt_now_) + ',')
 
-                    if len(close_disturbing_peaks) > 3 and found_heart_freq_old > 1:
-                        # To many disturbing peaks around, can't identify the correct one
-                        #print('Too many disturbing peaks around, can\'t identify the correct one')
-                        found_heart_freq = found_heart_freq_old
+                    # print("in while loop heart_rate")
+                    fft_signal_out = self.windowedFFT()
+
+                    if not self.f_hea1_csv.closed:  # for debug
+                        for fft in fft_signal_out:  # for debug
+                            self.f_hea1_csv.write(str(fft) + " ")  # for debug
+                        self.f_hea1_csv.write("\n")  # for debug
+
+                    fft_signal_out_dB = 20*np.log10(fft_signal_out)  # As of May 7, lenght of vector is 600
+
+                    if not self.f_hea2_csv.closed:  # for debug
+                        for fft_dB in fft_signal_out_dB:  # for debug
+                            self.f_hea2_csv.write(str(fft_dB) + " ")  # for debug
+                        self.f_hea2_csv.write("\n")  # for debug
+
+                    self.FFT_old_values[index_in_FFT_old_values][:] = fft_signal_out_dB
+
+                    # saved_old = self.FFT_old_values[:, 2] #to print
+                    # fft movemean
+                    FFT_averaged = self.mean_of_old_values(FFT_counter)
+
+                    if not self.f_hea3_csv.closed:  # for debug
+                        for fft_avgd in FFT_averaged:  # for debug
+                            self.f_hea3_csv.write(str(fft_avgd) + " ")  # for debug
+                        self.f_hea3_csv.write("\n")  # for debug
+
+                    #print("Length of averaged FFT: ", len(FFT_averaged))
+                    # Returns the peaks in set inteval from averaged FFT
+                    peak_freq, peak_amplitude = self.findPeaks(FFT_averaged)
+
+                    if not self.f_hea4_csv.closed:
+                        for peak_f in peak_freq:
+                            self.f_hea4_csv.write(str(peak_f) + " ")
+                        self.f_hea4_csv.write("\n")
+
+                    if not self.f_hea5_csv.closed:
+                        for peak_a in peak_amplitude:
+                            self.f_hea5_csv.write(str(peak_a) + " ")
+                        self.f_hea5_csv.write("\n")
+
+                    if not self.f_hea6_csv.closed:
+                        self.f_hea6_csv.write(str(FFT_counter) + "," + \
+                                              str(index_in_FFT_old_values) + ",")
+
+#                     if len(peak_freq) > 0 and np.amin(peak_amplitude) > -40 and np.amax(peak_amplitude) > -30 and time.time() - start_time > 50:
+                    if len(peak_freq) > 0 and np.amin(peak_amplitude) > -45 and np.amax(peak_amplitude) > -35 and time.time() - start_time > 50:
+#                         if not measurement_data_stable_state:
+#                             measurement_data_stable_state = True
+                        # In case zero peaks, use last value, and to not trigger on noise, and there is just noise before 30 seconds has passed
+                        # Going into own method when tested and working staying in "main loop"
+                        delta_freq = []
+                        for freq in peak_freq:
+                            delta_freq.append(freq - found_heart_freq_old)
+                        self.peak_weighted = []
+                        close_peaks = []
+                        close_disturbing_peaks = []
+                        try:
+                            for i in range(0, len(peak_freq)):  # Weight the peaks found depending on their amplitude,
+                                if peak_freq[i] < 0.9:
+                                    multiplication_factor = 5  # to lower the noise peak under 0.9 Hz
+                                elif peak_freq[i] < 1:
+                                    multiplication_factor = 7  # to lower the noise peak under 1 Hz
+                                else:
+                                    multiplication_factor = 10
+
+                                if not self.f_hea7_csv.closed:
+                                    if i == len(peak_freq) - 1:
+                                        self.f_hea7_csv.write(str(multiplication_factor))
+                                    else:
+                                        self.f_hea7_csv.write(str(multiplication_factor) + ",")
+
+                                # distance to the last tracked peak, and on the frequency (the noise is kind of 1/f, so to to fix that multiply with f)
+                                self.peak_weighted.append(peak_amplitude[i] + multiplication_factor * np.exp(
+                                    -np.abs(peak_freq[i] - found_heart_freq_old) / time_constant) * np.sqrt(
+                                    np.sqrt(peak_freq[i])))
+                                if np.abs(peak_freq[i] - found_heart_freq_old) < 0.2 and np.abs(
+                                        peak_amplitude[i] - found_heart_freq_amplitude_old) < 4 and (
+                                        found_heart_freq_old < 1 or peak_freq[i] > 1):
+                                    # To average peaks if they are close
+                                    close_peaks.append(peak_freq[i])
+                                elif np.abs(peak_freq[i] - found_heart_freq_old) < 0.5 and np.abs(
+                                        peak_amplitude[i] - found_heart_freq_amplitude_old) < 5:
+#                                 elif np.abs(peak_freq[i] - found_heart_freq_old) < 0.5 and np.abs(peak_freq[i] - found_heart_freq_old) >= 0.4 \
+#                                      and np.abs(peak_amplitude[i] - found_heart_freq_amplitude_old) < 5 and np.abs(peak_amplitude[i] - found_heart_freq_amplitude_old) >= 4:
+                                    # If there is a lot of peaks to disturb the measurement
+                                    close_disturbing_peaks.append(peak_freq[i])
+
+                            if not self.f_hea8_csv.closed:
+                                for i, pw in enumerate(self.peak_weighted):
+                                    if i == len(self.peak_weighted) - 1:
+                                        self.f_hea8_csv.write(str(pw))
+                                    else:
+                                        self.f_hea8_csv.write(str(pw) + ",")
+
+                            if not self.f_hea9_csv.closed:
+                                for i, cp in enumerate(close_peaks):
+                                    if i == len(close_peaks) - 1:
+                                        self.f_hea9_csv.write(str(cp))
+                                    else:
+                                        self.f_hea9_csv.write(str(cp) + ",")
+
+                            if not self.f_hea10_csv.closed:
+                                for i, cdp in enumerate(close_disturbing_peaks):
+                                    if i == len(close_disturbing_peaks) - 1:
+                                        self.f_hea10_csv.write(str(cdp))
+                                    else:
+                                        self.f_hea10_csv.write(str(cdp) + ",")
+
+                            found_peak_index = np.argmax(np.array(self.peak_weighted))
+                            found_heart_freq = peak_freq[found_peak_index]
+                            found_heart_freq_amplitude_old = self.peak_amplitude[found_peak_index]
+
+                            if not self.f_hea6_csv.closed:
+                                self.f_hea6_csv.write(str(found_peak_index) + "," + \
+                                                    str(found_heart_freq) + "," + \
+                                                    str(found_heart_freq_amplitude_old) + ",")
+
+                            # Determine the reliability of the found peak, if it's really the heart rate or just noise.
+                            # Compares to the next largest peak amplitude
+                            try:
+                                next_largest_peak_amplitude = np.amax(
+                                    self.peak_amplitude[:found_peak_index]+self.peak_amplitude[found_peak_index+1:])
+                            except:
+                                next_largest_peak_amplitude = -35
+
+                            if not self.f_hea6_csv.closed:
+                                self.f_hea6_csv.write(str(next_largest_peak_amplitude) + ",")
+
+                            if found_heart_freq_amplitude_old - next_largest_peak_amplitude > 12:
+                                found_peak_reliability = "ExceptionalHigh"
+                                found_peak_reliability_int = 6
+                            elif found_heart_freq_amplitude_old - next_largest_peak_amplitude > 7:
+                                found_peak_reliability = "VeryHigh"
+                                found_peak_reliability_int = 5
+                            elif found_heart_freq_amplitude_old - next_largest_peak_amplitude > 4:
+                                found_peak_reliability = "High"
+                                found_peak_reliability_int = 4
+                            elif found_heart_freq_amplitude_old - next_largest_peak_amplitude > 3:
+                                found_peak_reliability = "Medium"
+                                found_peak_reliability_int = 3
+                            else:
+                                found_peak_reliability = "Low"  # TODO uncertain?
+                                found_peak_reliability_int = 2
+
+                            if len(close_peaks) > 1:
+#                             if len(close_peaks) >= 4:  # case for self.sample_freq = 40
+                                print('averaging, old:', found_heart_freq)
+                                found_heart_freq = np.mean(close_peaks)
+
+                            if len(close_disturbing_peaks) > 3 and found_heart_freq_old > 1:
+#                             if len(close_disturbing_peaks) >= 8 and found_heart_freq_old > 1:  # case for self.sample_freq = 40
+                                # To many disturbing peaks around, can't identify the correct one
+                                #print('Too many disturbing peaks around, can\'t identify the correct one')
+                                found_heart_freq = found_heart_freq_old
+                                found_peak_reliability = "VeryLow"
+                                found_peak_reliability_int = 1
+
+                            old_heart_freq_list.append(found_heart_freq)  # save last 20 values
+#                             if len(old_heart_freq_list) > 5:
+                            if len(old_heart_freq_list) > upl_of_old_heart_freq_list:
+                                old_heart_freq_list.pop(0)
+
+                            if not self.f_hea11_csv.closed:
+                                for i, ohf in enumerate(old_heart_freq_list):
+                                    if i == len(old_heart_freq_list) - 1:
+                                        self.f_hea11_csv.write(str(ohf))
+                                    else:
+                                        self.f_hea11_csv.write(str(ohf) + ",")
+
+#                             if np.abs(np.mean(old_heart_freq_list[
+#                                               0:-2]) - found_heart_freq) > 0.1:  # too big change, probably noise or other disruptions
+#                             if np.abs(np.mean(old_heart_freq_list[0:-2]) - found_heart_freq) > 0.05 \
+                            if np.abs(np.mean(old_heart_freq_list[0:-2]) - found_heart_freq) > 0.1 \
+                                and len(old_heart_freq_list) >= upl_of_old_heart_freq_list:  # too big change, probably noise or other disruptions (except until old_heart_freq_list is filled with measured values.)
+                                found_heart_freq = np.mean(old_heart_freq_list)
+                                #print('Too big change, probably noise or other disruptions, old:', old_heart_freq_list[-1])
+
+                        except Exception as e:
+                            print('exept in heart peak:', e)
+                            found_heart_freq = 0
+
+                        if first_real_value and (found_heart_freq > 1 or time.time() - start_time > 120):
+                            first_real_value = False
+                        if found_heart_freq < 1 and first_real_value:  # Do not trigger on the large noise peak under 1 Hz
+                            found_heart_freq = 0
+
+                        found_heart_freq_old = found_heart_freq
+#                     elif len(peak_freq) > 0 and np.amin(peak_amplitude) > -40:
+                    elif len(peak_freq) > 0 and np.amin(peak_amplitude) > -45:
+                        found_heart_freq = found_heart_freq_old  # just use the last values
                         found_peak_reliability = "VeryLow"
                         found_peak_reliability_int = 1
 
-                    old_heart_freq_list.append(found_heart_freq)  # save last 20 values
-                    if len(old_heart_freq_list) > 5:
-                        old_heart_freq_list.pop(0)
+                        if not self.f_hea6_csv.closed:
+                            self.f_hea6_csv.write("," + \
+                                                str(found_heart_freq) + "," + \
+                                                ",")
+                            self.f_hea6_csv.write(",")
 
-                    if np.abs(np.mean(old_heart_freq_list[
-                                      0:-2]) - found_heart_freq) > 0.1:  # too big change, probably noise or other disruptions
-                        found_heart_freq = np.mean(old_heart_freq_list)
-                        #print('Too big change, probably noise or other disruptions, old:', old_heart_freq_list[-1])
+                    else:
+                        #found_heart_freq = found_heart_freq_old
+                        found_heart_freq = 0
+                        self.peak_weighted.clear()
+                        found_peak_reliability = "None"
+                        found_peak_reliability_int = 0
 
-                except Exception as e:
-                    print('exept in heart peak:', e)
-                    found_heart_freq = 0
+                        if not self.f_hea6_csv.closed:
+                            self.f_hea6_csv.write("," + \
+                                                str(found_heart_freq) + "," + \
+                                                ",")
+                            self.f_hea6_csv.write(",")
 
-                if first_real_value and (found_heart_freq > 1 or time.time() - start_time > 120):
-                    first_real_value = False
-                if found_heart_freq < 1 and first_real_value:  # Do not trigger on the large noise peak under 1 Hz
-                    found_heart_freq = 0
+                    if not self.f_hea6_csv.closed:
+                        self.f_hea6_csv.write(str(found_heart_freq) + ",")
 
-                found_heart_freq_old = found_heart_freq
-            elif len(peak_freq) > 0 and np.amin(peak_amplitude) > -40:
-                found_heart_freq = found_heart_freq_old  # just use the last values
-                found_peak_reliability = "VeryLow"
-                found_peak_reliability_int = 1
-            else:
-                #found_heart_freq = found_heart_freq_old
-                found_heart_freq = 0
-                self.peak_weighted.clear()
-                found_peak_reliability = "None"
-                found_peak_reliability_int = 0
+                    if not measurement_data_stable_state:
+                        if len(old_heart_freq_list) >= upl_of_old_heart_freq_list and found_heart_freq >= 50/60 and found_heart_freq < 100/60:
+                            measurement_data_stable_state = True
 
-            if not first_real_value:
-                print("Found heart rate Hz and BPM: ", found_heart_freq, int(
-                    60*found_heart_freq), 'Reliability:', found_peak_reliability)
-                found_heart_rate = int(60 * found_heart_freq)
-                self.bluetooth_server.write_data_to_app(
-                    str(found_heart_rate) + ' ' + found_peak_reliability, 'heart rate')  # Send to app
+                    if not first_real_value:
+                        print("Found heart rate Hz and BPM: ", found_heart_freq, int(
+                            60*found_heart_freq), 'Reliability:', found_peak_reliability)
+                        found_heart_rate = int(60 * found_heart_freq)
+                        # Do not notify clients until measurement data is stable
+                        if measurement_data_stable_state:
+                            self.bluetooth_server.write_data_to_app(
+                                str(found_heart_rate) + ' ' + found_peak_reliability, 'heart rate')  # Send to app
 
-            else:
-                print("Waiting to find heart rate")
-                found_heart_rate = 0
-                found_peak_reliability = "None"
-                found_peak_reliability_int = 0
-                self.bluetooth_server.write_data_to_app(
-                    str(found_heart_rate) + ' ' + found_peak_reliability, 'heart rate')   # Send to app
+                    else:
+                        print("Waiting to find heart rate")
+                        found_heart_rate = 0
+                        found_peak_reliability = "None"
+                        found_peak_reliability_int = 0
+#                         self.bluetooth_server.write_data_to_app(
+#                             str(found_heart_rate) + ' ' + found_peak_reliability, 'heart rate')   # Send to app
 
-            # BPM_search = self.freq * 60 # Used where?
-            # print("past plot heart rate")
+                    if not self.f_hea6_csv.closed:
+                        self.f_hea6_csv.write(str(found_heart_rate) + "\n")
+                    if not self.f_hea7_csv.closed:
+                        self.f_hea7_csv.write("\n")
+                    if not self.f_hea8_csv.closed:
+                        self.f_hea8_csv.write("\n")
+                    if not self.f_hea9_csv.closed:
+                        self.f_hea9_csv.write("\n")
+                    if not self.f_hea10_csv.closed:
+                        self.f_hea10_csv.write("\n")
+                    if not self.f_hea11_csv.closed:
+                        self.f_hea11_csv.write("\n")
 
-            # increment counters in loop
-            if FFT_counter < self.number_of_old_FFT:
-                FFT_counter += 1
-            index_in_FFT_old_values += 1
-            if index_in_FFT_old_values == self.number_of_old_FFT:
-                index_in_FFT_old_values = 0
-            # initiate save to CSV'
-            # print("time for csv write List: ",
-            #      self.list_of_variables_for_threads["start_write_to_csv_time"])
-            if self.initiate_write_heart_rate and time.time() - self.list_of_variables_for_threads["start_write_to_csv_time"] < 5*60:
-                print("Inside save to csv statement")
-                # self.heart_rate_spectrum.append(self.FFTamplitude)
-                # self.heart_rate_frequency.append(self.FFTfreq)
-                self.heart_rate_csv.append(found_heart_rate)
-                self.heart_rate_reliability_csv.append(found_peak_reliability_int)
-            elif self.initiate_write_heart_rate:
-                np_csv = np.asarray(self.heart_rate_csv)
-                np.savetxt("heart_rate.csv", np_csv, delimiter=";")
-                np_csv = np.asarray(self.heart_rate_reliability_csv)
-                np.savetxt("heart_rate_reliability.csv", np_csv, delimiter=";")
-                print("Should have saved CSV")
-                #self.go.pop(0)
-                #self.list_of_variables_for_threads["go"] = self.go
-                # np_csv = np.asarray(self.heart_rate_csv)
-                # np.savetxt("heart_rate.csv", np_csv, delimiter=";")
-                # np_csv = np.asarray(self.heart_rate_reliability_csv)
-                # np.savetxt("heart_rate_reliability.csv", np_csv, delimiter=";")
-                # print("Should have saved CSV")
-                # Remove Bluetooth clients
-                # for client in self.bluetooth_server.client_list:
-                #     print('try to remove client ' +
-                #           str(self.bluetooth_server.address_list[self.bluetooth_server.client_list.index(client)]))
-                #     client.close()
-                #     print('remove client ' +
-                #           str(self.bluetooth_server.address_list[self.bluetooth_server.client_list.index(client)]))
-                # self.bluetooth_server.server.close()
-                # print("server is now closed")
-                # os.system("echo 'power off\nquit' | bluetoothctl")
+                    # BPM_search = self.freq * 60 # Used where?
+                    # print("past plot heart rate")
+
+                    # increment counters in loop
+                    if FFT_counter < self.number_of_old_FFT:
+                        FFT_counter += 1
+                    index_in_FFT_old_values += 1
+                    if index_in_FFT_old_values == self.number_of_old_FFT:
+                        index_in_FFT_old_values = 0
+                    # initiate save to CSV'
+                    # print("time for csv write List: ",
+                    #      self.list_of_variables_for_threads["start_write_to_csv_time"])
+                    if self.initiate_write_heart_rate and time.time() - self.list_of_variables_for_threads["start_write_to_csv_time"] < 5*60:
+                        print("Inside save to csv statement")
+                        # self.heart_rate_spectrum.append(self.FFTamplitude)
+                        # self.heart_rate_frequency.append(self.FFTfreq)
+                        self.heart_rate_csv.append(found_heart_rate)
+                        self.heart_rate_reliability_csv.append(found_peak_reliability_int)
+                    elif self.initiate_write_heart_rate:
+                        np_csv = np.asarray(self.heart_rate_csv)
+                        np.savetxt("heart_rate.csv", np_csv, delimiter=";")
+                        np_csv = np.asarray(self.heart_rate_reliability_csv)
+                        np.savetxt("heart_rate_reliability.csv", np_csv, delimiter=";")
+                        print("Should have saved CSV")
+                        #self.go.pop(0)
+                        #self.list_of_variables_for_threads["go"] = self.go
+                        # np_csv = np.asarray(self.heart_rate_csv)
+                        # np.savetxt("heart_rate.csv", np_csv, delimiter=";")
+                        # np_csv = np.asarray(self.heart_rate_reliability_csv)
+                        # np.savetxt("heart_rate_reliability.csv", np_csv, delimiter=";")
+                        # print("Should have saved CSV")
+                        # Remove Bluetooth clients
+                        # for client in self.bluetooth_server.client_list:
+                        #     print('try to remove client ' +
+                        #           str(self.bluetooth_server.address_list[self.bluetooth_server.client_list.index(client)]))
+                        #     client.close()
+                        #     print('remove client ' +
+                        #           str(self.bluetooth_server.address_list[self.bluetooth_server.client_list.index(client)]))
+                        # self.bluetooth_server.server.close()
+                        # print("server is now closed")
+                        # os.system("echo 'power off\nquit' | bluetoothctl")
 
         print("Out of pulse")
 
@@ -328,17 +547,35 @@ class SignalProcessing:
         F_scan_lower = 0.8
         F_scan_upper = 3
         #print("len self freq: ", len(self.freq))
-        FFT_in_interval = FFT_averaged[self.freq <= F_scan_upper]
-        freq2 = self.freq[self.freq <= F_scan_upper]
+        FFT_in_interval = FFT_averaged[self.freq <= F_scan_upper]  # case for self.sample_freq = 20
+        freq2 = self.freq[self.freq <= F_scan_upper]  # case for self.sample_freq = 20
+#         freq_ = np.linspace(0, self.sample_freq/4, num=int(self.total_fft_length/2))  # case for self.sample_freq = 40
+
+#         print('freq_ = ' + str(len(freq_)))  # for debug
+
+#         FFT_in_interval = FFT_averaged[freq_ <= F_scan_upper]  # case for self.sample_freq = 40
+
+#         print('FFT_in_interval[-1] = ' + str(FFT_in_interval[-1]))  # for debug
+
+#         freq2 = freq_[freq_ <= F_scan_upper]  # case for self.sample_freq = 40
+
+#         print('freq2[0] = ' + str(freq2[0]) + ', freq2[-1] = ' + str(freq2[-1]))  # for debug
+
         FFT_in_interval = FFT_in_interval[freq2 > F_scan_lower]
+
+#         print('len(FFT_in_interval) = ' + str(len(FFT_in_interval)))  # for debug
+
         peak_freq_linspace = np.linspace(F_scan_lower, F_scan_upper, num=len(FFT_in_interval))
         #print("len of fft in interval: ", len(FFT_in_interval))
         #print("FFT_in_interval", FFT_in_interval, "\n", len(FFT_in_interval))
 
         MaxFFT = np.amax(FFT_in_interval)  # Do on one line later, to remove outliers
         #threshold = MaxFFT - 10
-        threshold = -35
+#         threshold = -35
+        threshold = -40
         peaks, _ = signal.find_peaks(FFT_in_interval)
+
+        print('len(peaks) = ' + str(len(peaks)))  # for debug
 
         index_list = []
         index = 0
@@ -369,81 +606,237 @@ class SignalProcessing:
     def getFFTvalues(self):
         return self.FFTfreq, self.FFTamplitude, self.peak_freq, self.peak_amplitude, self.len_fft, self.peak_weighted
 
+    def blood_pressure(self):
+        while sv.list_of_variables_for_threads["terminate_yet"]:
+
+#             while self.go:
+            if sv.list_of_variables_for_threads["is_measuring"]:
+
+                val = 0
+                pval = 0
+                movavgHRdata = []
+                idx0 = 1
+                idxpeak0 = 0
+                state = 0
+
+                while True:
+                    pval = val
+                    val = self.HR_filtered_queue_movavg.get()
+
+                    if val >= 0 and pval < 0:
+                        movavgHRdata.append(pval)
+                        movavgHRdata.append(val)
+                        dt_now = datetime.datetime.now()
+                        dt_now_ = str(dt_now).replace(' ', ',')
+                        self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
+                        if not self.f_bpint_csv.closed:
+                            self.f_bpint_csv.write(str(dt_now_) + ',' + str(movavgHRdata[-2]) + ',,,,,,\n')
+                            self.f_bpint_csv.write(str(dt_now_) + ',' + str(movavgHRdata[-1]) + ',,,,,,\n')
+                        break
+
+#             while self.go:
+                while True:
+                    val = self.HR_filtered_queue_movavg.get()
+                    movavgHRdata.append(val)
+                    dt_now = datetime.datetime.now()
+                    dt_now_ = str(dt_now).replace(' ', ',')
+                    self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
+                    if not self.f_bpint_csv.closed:
+                        self.f_bpint_csv.write(str(dt_now_) + ',' + str(movavgHRdata[-1]) + ',,,,,,\n')
+
+                    if movavgHRdata[-2] >= 0 and movavgHRdata[-1] < 0:
+                        idx0 = len(movavgHRdata)
+                        peaks, _ = signal.find_peaks(movavgHRdata)
+                        local_maximal = [movavgHRdata[i] for i in peaks]
+                        max_local_maximal = max(local_maximal)
+                        idxpeak0 = movavgHRdata.index(max_local_maximal)
+                        break
+
+#             while self.go:
+                while sv.list_of_variables_for_threads["is_measuring"]:
+                    if state == 0 and movavgHRdata[-2] < 0 and movavgHRdata[-1] >= 0:
+                        idx1 = len(movavgHRdata)
+                        tempList = movavgHRdata[idx0 - 2 : idx1]
+                        peaks, _ = signal.find_peaks([(-1) * listitem for listitem in tempList])
+                        local_minimal = [tempList[i] for i in peaks]
+                        min_local_minimal = min(local_minimal)
+                        idxbottom = movavgHRdata.index(min_local_minimal)
+                        state = 1
+                    elif state == 1 and movavgHRdata[-2] >= 0 and movavgHRdata[-1] < 0:
+                        idx2 = len(movavgHRdata)
+                        tempList = movavgHRdata[idx1 - 2 : idx2]
+                        peaks, _ = signal.find_peaks(tempList)
+                        local_maximal = [tempList[i] for i in peaks]
+                        max_local_maximal = max(local_maximal)
+                        idxpeak1 = movavgHRdata.index(max_local_maximal)
+                        sbp = 140 - 74 * (idxpeak1 - idxbottom) * 50 / 1000
+#                         sbp = 140 - 74 * (idxpeak1 - idxbottom) * 9.6 / 1000
+                        mbp = 105 - 29 * (idxpeak1 - idxpeak0) * 50 / 1000
+#                         mbp = 105 - 29 * (idxpeak1 - idxpeak0) * 9.6 / 1000
+                        dbp = (3 * mbp - sbp) / 2
+                        sbp_movavg = self.movavg_SBP.filter(sbp)
+                        mbp_movavg = self.movavg_MBP.filter(mbp)
+                        dbp_movavg = self.movavg_DBP.filter(dbp)
+                        self.bluetooth_server.write_data_to_app(
+                            str(sbp) + ' ' + str(mbp) + ' ' + str(dbp) + ' ' \
+                            + str(sbp_movavg) + ' ' + str(mbp_movavg) + ' ' + str(dbp_movavg), 'blood pressure')  # Send to app
+                        dt_now = datetime.datetime.now()
+                        dt_now_ = str(dt_now).replace(' ', ',')
+                        self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
+                        if not self.f_bpint_csv.closed:
+                            self.f_bpint_csv.write(str(dt_now_) + ',' + str(movavgHRdata[-1]) + ',' \
+                                                + str(idxpeak0) + ',' + str(idxbottom) + ',' + str(idxpeak1) + ',' \
+                                                + str(sbp) + ',' + str(mbp) + ',' + str(dbp) + '\n')
+                        state = 0
+                        del movavgHRdata[0 : idx1 - 2]
+                        idx0 = len(movavgHRdata) - 1
+                        idxpeak0 = idxpeak1 - idx1 + 2
+
+                    val = self.HR_filtered_queue_movavg.get()
+                    movavgHRdata.append(val)
+                    dt_now = datetime.datetime.now()
+                    dt_now_ = str(dt_now).replace(' ', ',')
+                    if not (state == 1 and movavgHRdata[-2] >= 0 and movavgHRdata[-1] < 0):
+                        self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
+                        if not self.f_bpint_csv.closed:
+                            self.f_bpint_csv.write(str(dt_now_) + ',' + str(movavgHRdata[-1]) + ',,,,,,\n')
+
+        print("out of blood_pressure")
+
     def schmittTrigger(self):
-        print("SchmittTrigger started")
-        # Test for time
-        Inside = True
-        # variable declaration
-        Tc = 12  # medelvärdesbildning över antal [s]
-        schNy = 0  # Schmitt ny
-        schGa = 0  # Schmitt gammal
-        Hcut = 0.001  # Higher hysteres cut. Change this according to filter. To manage startup of filter
-        Lcut = -Hcut  # Lower hysteres cut
-        # average over old values. TODO ev. ingen medelvärdesbildning. För att förhindra att andningen går mot ett fast värde. Vi vill se mer i realtid.
-        avOver = 8
-        freqArray = np.zeros(avOver)  # for averaging over old values
-        count = 1  # for counting number of samples passed since last negative flank
-        countHys = 1  # for counting if hysteresis should be updated
-        FHighRR = 0.7  # To remove outliers in mean value
-        FLowRR = 0.1  # To remove outliers in mean value
-        # for saving respiratory_queue_RR old values for hysteresis
-        trackedRRvector = np.zeros(self.sample_freq * Tc)  # to save old values
+        while sv.list_of_variables_for_threads["terminate_yet"]:
 
-        while self.go:
-            # to be able to use the same value in the whole loop
-            if self.time_when_sent_last_value is not None and (time.time() - self.time_when_sent_last_value > 10):
-                # sends zero as breath rate if no value was found the last ten seconds
-                self.bluetooth_server.write_data_to_app(0, 'breath rate')
-                self.time_when_sent_last_value = time.time()
-            trackedRRvector[countHys - 1] = self.RR_filtered_queue.get()
-            #print("Amplitude for respitory rate {}".format(trackedRRvector[countHys-1]))
-            # self.RTB_final_queue.put(trackedRRvector[countHys - 1])
+            if sv.list_of_variables_for_threads["is_measuring"]:
 
-            if countHys == self.sample_freq * Tc:
-                Hcut = np.sqrt(np.mean(np.square(trackedRRvector))) * 0.7  # rms of trackedRRvector
-                # Hcut = 0.002
-                if Hcut < 0.1:
-                    Hcut = 0.1
-                Lcut = -Hcut
+#                 print("SchmittTrigger started")
+                # Test for time
+                Inside = True
+                # variable declaration
+#                 Tc = 12  # medelvärdesbildning över antal [s]
+#                 Tc = 6  # medelvärdesbildning över antal [s]  # Changed value from 12 to 6 to prevent respiration rate from reaching 0.
+                Tc = 4  # medelvärdesbildning över antal [s]  # Changed value from 12 to 4 to prevent respiration rate from reaching 0.
+                schNy = 0  # Schmitt ny
+                schGa = 0  # Schmitt gammal
+                Hcut = 0.001  # Higher hysteres cut. Change this according to filter. To manage startup of filter
+                Lcut = -Hcut  # Lower hysteres cut
+                # average over old values. TODO ev. ingen medelvärdesbildning. För att förhindra att andningen går mot ett fast värde. Vi vill se mer i realtid.
+                avOver = 8
+                freqArray = np.zeros(avOver)  # for averaging over old values
+                count = 1  # for counting number of samples passed since last negative flank
+                countHys = 1  # for counting if hysteresis should be updated
+                FHighRR = 0.7  # To remove outliers in mean value
+                FLowRR = 0.1  # To remove outliers in mean value
+                # for saving respiratory_queue_RR old values for hysteresis
+#                 trackedRRvector = np.zeros(self.sample_freq * Tc)  # to save old values
+                trackedRRvector = np.zeros(int(self.sample_freq) * Tc)  # to save old values
+                # Added for holding last sent data
+                respiratory_rate_data = 0
+                # A variable that indicates when the measurement data is stable
+                measurement_data_stable_state = False
 
-                # print("Hcut: ", Hcut)       # se vad hysteres blir
-                # print("The last value of vector {}".format(trackedRRvector[countHys-1]))
-                # TODO Hinder så att insvängningstiden för filtret hanteras
-                countHys = 0
+#                 while self.go:
+                while sv.list_of_variables_for_threads["is_measuring"]:
 
-            # schNy = schGa   behövs inte. Görs nedan
+                    self.f_sch_csv =  sv.list_of_variables_for_threads["f_sch_csv"]
 
-            # trackedRRvector[countHys-1] is the current data from filter
-            # Takes long time to go into this loop
-            if trackedRRvector[countHys - 1] <= Lcut:
-                schNy = 0
-                if schGa == 1:
-                    # print("Inside update resprate loop")
-                    np.roll(freqArray, 1)
-                    # save the new frequency between two negative flanks
-                    freqArray[0] = self.sample_freq / count
-                    # Take the mean value
-                    # RR_final_queue is supposed to be the breathing rate queue that is sent to app
-                    # self.RR_final_queue.put(self.getMeanOfFreqArray(freqArray, FHighRR, FLowRR))
-                    # start = time.time()
-                    self.bluetooth_server.write_data_to_app(
-                        self.getMeanOfFreqArray(freqArray, FHighRR, FLowRR), 'breath rate')
-                    self.time_when_sent_last_value = time.time()
-                    # done = time.time() # verkar ta lite tid, troligtvis på grund av getMeanOfFrequency
-                    # print('send to app', (done - start)*1000)
+                    dt_now = datetime.datetime.now()
+                    if not self.f_sch_csv.closed:
+                        self.f_sch_csv.write(str(dt_now) + ' ')
 
-                    # TODO put getMeanOfFreqArray() into queue that connects to send bluetooth values instead
-                    count = 0
-            # trackedRRvector[countHys-1] is the current data from filter
-            elif trackedRRvector[countHys - 1] >= Hcut:
-                schNy = 1
 
-            schGa = schNy
-            count += 1
-            countHys += 1
+                    # to be able to use the same value in the whole loop
+#                     if self.time_when_sent_last_value is not None and (time.time() - self.time_when_sent_last_value > 10):
+#                         # sends zero as breath rate if no value was found the last ten seconds
+                    if self.time_when_sent_last_value is not None and (time.time() - self.time_when_sent_last_value > 20):
+                        # sends zero as breath rate if no value was found the last twenty seconds
+#                     if self.time_when_sent_last_value is not None and (time.time() - self.time_when_sent_last_value > 14):
+#                         # sends zero as breath rate if no value was found the last fourteen seconds
+                        self.bluetooth_server.write_data_to_app(0, 'breath rate')
+#                         # sends last breath rate if no value was found the last ten seconds
+#                         self.bluetooth_server.write_data_to_app(respiratory_rate_data, 'breath rate')
+                        self.time_when_sent_last_value = time.time()
+                        # For the time being, I tried the same
+                        count = 0
+                    trackedRRvector[countHys - 1] = self.RR_filtered_queue.get()
 
-            end = time.time()
-            # print("Tid genom schmittTrigger: ", end-start)
+                    if not self.f_sch_csv.closed:
+                        self.f_sch_csv.write(str(countHys) + " " + str(trackedRRvector[countHys - 1]) + " ")
+
+                    #print("Amplitude for respitory rate {}".format(trackedRRvector[countHys-1]))
+                    # self.RTB_final_queue.put(trackedRRvector[countHys - 1])
+
+                    if countHys == self.sample_freq * Tc:
+                        Hcut = np.sqrt(np.mean(np.square(trackedRRvector))) * 0.7  # rms of trackedRRvector
+                        # Hcut = 0.002
+                        if Hcut < 0.1:
+                            Hcut = 0.1
+                        Lcut = -Hcut
+
+                        # print("Hcut: ", Hcut)       # se vad hysteres blir
+                        # print("The last value of vector {}".format(trackedRRvector[countHys-1]))
+                        # TODO Hinder så att insvängningstiden för filtret hanteras
+                        countHys = 0
+
+                    if not self.f_sch_csv.closed:
+                        self.f_sch_csv.write(str(Hcut) + " " + str(Lcut) + " ")
+
+                    # schNy = schGa   behövs inte. Görs nedan
+
+                    # trackedRRvector[countHys-1] is the current data from filter
+                    # Takes long time to go into this loop
+                    if trackedRRvector[countHys - 1] <= Lcut:
+                        schNy = 0
+                        if schGa == 1:
+                            # print("Inside update resprate loop")
+#                             np.roll(freqArray, 1)
+                            freqArray = np.roll(freqArray, 1)
+                            # save the new frequency between two negative flanks
+                            freqArray[0] = self.sample_freq / count  # case for self.samplefreq = 20
+#                             freqArray[0] = (self.sample_freq / 2) / count  # case for self.sample_freq = 40
+                            # Take the mean value
+                            # RR_final_queue is supposed to be the breathing rate queue that is sent to app
+                            # self.RR_final_queue.put(self.getMeanOfFreqArray(freqArray, FHighRR, FLowRR))
+                            # start = time.time()
+#                             self.bluetooth_server.write_data_to_app(
+#                                 self.getMeanOfFreqArray(freqArray, FHighRR, FLowRR), 'breath rate')
+                            # Split processing to keep transmitted data
+                            respiratory_rate_data = self.getMeanOfFreqArray(freqArray, FHighRR, FLowRR)
+                            if not measurement_data_stable_state:
+                                # Check if all elements of freqArray are greater than 0
+                                for freqArrayItem in freqArray:
+                                    if freqArrayItem > 0:
+                                        measurement_data_stable_state = True
+                                    else:
+                                        measurement_data_stable_state = False
+                                        break
+                                if respiratory_rate_data < 12 or respiratory_rate_data > 20:
+                                    measurement_data_stable_state = False
+                            # Do not notify clients until measurement data is stable
+                            if measurement_data_stable_state:
+                                self.bluetooth_server.write_data_to_app(respiratory_rate_data, 'breath rate')
+                            self.time_when_sent_last_value = time.time()
+                            # done = time.time() # verkar ta lite tid, troligtvis på grund av getMeanOfFrequency
+                            # print('send to app', (done - start)*1000)
+
+                            # TODO put getMeanOfFreqArray() into queue that connects to send bluetooth values instead
+                            count = 0
+                    # trackedRRvector[countHys-1] is the current data from filter
+                    elif trackedRRvector[countHys - 1] >= Hcut:
+                        schNy = 1
+
+                    if not self.f_sch_csv.closed:
+                        for freq in freqArray:
+                            self.f_sch_csv.write(str(freq) + " ")
+
+                        self.f_sch_csv.write(str(FHighRR) + " " + str(FLowRR) + " " + str(respiratory_rate_data) + " " + \
+                                            str(schNy) + " " + str(schGa) + " " + str(count) + "\n")
+
+                    schGa = schNy
+                    count += 1
+                    countHys += 1
+
+                    end = time.time()
+                    # print("Tid genom schmittTrigger: ", end-start)
 
         print("out of schmittTrigger")
 

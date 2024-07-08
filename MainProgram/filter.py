@@ -103,7 +103,11 @@ class Filter:
                                 0.00015007,0.00014188,0.00013369,0.00012551,0.00011738,0.00010932,0.00010136,9.3522e-05,
                                 8.583e-05,7.8304e-05,7.0964e-05,6.3829e-05,5.6915e-05,5.0237e-05]
 
-    def __init__(self, filter_type):
+#     window_size = 5
+#     coefficients_movavg_HR = np.ones(window_size) / window_size
+
+#     def __init__(self, filter_type):
+    def __init__(self, filter_type, window_size_for_movavg=5):
         # Selection of used filter
         if filter_type == 'highpass_HR':
             self.coefficients = Filter.coefficients_highpass_HR
@@ -113,7 +117,11 @@ class Filter:
             self.coefficients = Filter.coefficients_highpass_RR
         elif filter_type == 'lowpass_RR':
             self.coefficients = Filter.coefficients_lowpass_RR
-        
+#         elif filter_type == 'movavg_HR':
+#             self.coefficients = Filter.coefficients_movavg_HR
+        elif filter_type == 'movavg':
+            self.coefficients = np.ones(window_size_for_movavg) / window_size_for_movavg
+
         self.length_of_input_vector = len(self.coefficients)            # Length of coefficient vector and length of input vector
         self.input_vector = np.zeros(self.length_of_input_vector)       # Vector of the same length as coefficients
         self.input_vector_index = 0                                     # To know where the latest input value is in input_vector
@@ -123,7 +131,8 @@ class Filter:
         output = 0                                                      # The filtered value. Add all coefficients * (input values) together
 
         iterate_index = self.input_vector_index                     # Because variable value is changed in order to loop array
-        for i in range(0, self.length_of_input_vector - 1):         # Iterate over all coefficients and relevant input values
+#         for i in range(0, self.length_of_input_vector - 1):         # Iterate over all coefficients and relevant input values
+        for i in range(0, self.length_of_input_vector):             # Iterate over all coefficients and relevant input values
             if iterate_index - i < 0:                               # If iterate_index is negative, then begin from right hand side and work our way to the left in array
                 iterate_index = self.length_of_input_vector + i - 1         # Moving to the rightmost location of array
             output += self.coefficients[i] * self.input_vector[iterate_index - i]       # Add value of coefficient * data

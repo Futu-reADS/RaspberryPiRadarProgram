@@ -7,6 +7,8 @@ from scipy import signal
 import queue
 import os
 
+import datetime
+
 # Import for graphs
 import pyqtgraph as pg
 from PyQt5 import QtCore
@@ -15,28 +17,34 @@ from PyQt5 import QtCore
 import filter
 
 # Imports from Acconeer for radar data acquisition
-from acconeer_utils.clients.reg.client import RegClient
-from acconeer_utils.clients.json.client import JSONClient
-from acconeer_utils.clients import configs
-from acconeer_utils import example_utils
-from acconeer_utils.pg_process import PGProcess, PGProccessDiedException
+# from acconeer_utils.clients.reg.client import RegClient
+# from acconeer_utils.clients.json.client import JSONClient
+# from acconeer_utils.clients import configs
+# from acconeer_utils import example_utils
+# from acconeer_utils.pg_process import PGProcess, PGProccessDiedException
+import acconeer.exptool as et
+
+import shared_variables as sv
 
 
 class DataAcquisition(threading.Thread):
-    def __init__(self, list_of_variables_for_threads, bluetooth_server):
+#     def __init__(self, list_of_variables_for_threads, bluetooth_server):
+    def __init__(self, bluetooth_server):
         super(DataAcquisition, self).__init__()         # Inherit threading vitals
 
         # Declaration of global variables
-        self.go = list_of_variables_for_threads["go"]
-        self.list_of_variables_for_threads = list_of_variables_for_threads
+        self.go =  sv.list_of_variables_for_threads["go"]
+        self.list_of_variables_for_threads =  sv.list_of_variables_for_threads
         self.bluetooth_server = bluetooth_server
-        self.run_measurement = self.list_of_variables_for_threads['run_measurement']
+#         self.run_measurement = self.list_of_variables_for_threads['run_measurement']
         self.window_slide = self.list_of_variables_for_threads["window_slide"]
-        self.initiate_write_respitory_rate = list_of_variables_for_threads["initiate_write_heart_rate"]
+        self.initiate_write_respitory_rate =  sv.list_of_variables_for_threads["initiate_write_heart_rate"]
         self.resp_rate_csv = []
         # Setup for collecting data from Acconeer's radar files
-        self.args = example_utils.ExampleArgumentParser().parse_args()
-        example_utils.config_logging(self.args)
+#         self.args = example_utils.ExampleArgumentParser().parse_args()
+#         example_utils.config_logging(self.args)
+        self.args = et.a111.ExampleArgumentParser().parse_args()
+        et.utils.config_logging(self.args)
         # if self.args.socket_addr:
         #     self.client = JSONClient(self.args.socket_addr)
         #     print("RADAR Port = " + self.args.socket_addr)
@@ -44,19 +52,26 @@ class DataAcquisition(threading.Thread):
         #     print("Radar serial port: " + self.args.serial_port)
         #     port = self.args.serial_port or example_utils.autodetect_serial_port()
         #     self.client = RegClient(port)
-        self.client = JSONClient('0.0.0.0')
+#         self.client = JSONClient('0.0.0.0')
+        self.client = et.a111.Client(**et.a111.get_client_args(self.args))
         print("args: " + str(self.args))
         self.client.squeeze = False
-        self.config = configs.IQServiceConfig()
+#         self.config = configs.IQServiceConfig()
+        self.config = et.a111.IQServiceConfig()
         self.config.sensor = self.args.sensors
         print(self.args.sensors)
         # self.config.sensor = 1
         # Settings for radar setup
         self.config.range_interval = [0.4, 1.4]  # Measurement interval
+#         self.config.range_interval = [0.06, 0.08]  # Measurement interval
         # Frequency for collecting data. To low means that fast movements can't be tracked.
-        self.config.sweep_rate = 20  # Probably 40 is the best without graph
+#         self.config.sweep_rate = 20  # Probably 40 is the best without graph
+        self.config.update_rate = 20  # Probably 40 is the best without graph
+#         self.config.update_rate = 40  # Probably 40 is the best without graph
         # For use of sample freq in other threads and classes.
-        self.list_of_variables_for_threads["sample_freq"] = self.config.sweep_rate
+#         self.list_of_variables_for_threads["sample_freq"] = self.config.sweep_rate
+        self.list_of_variables_for_threads["sample_freq"] = self.config.update_rate
+        sv.list_of_variables_for_threads["sample_freq"] = self.config.update_rate
         # The hardware of UART/SPI limits the sweep rate.
         self.config.gain = 0.7  # Gain between 0 and 1. Larger gain increase the SNR, but come at a cost
         # with more instability. Optimally is around 0.7
@@ -132,16 +147,26 @@ class DataAcquisition(threading.Thread):
         self.highpass_RR = filter.Filter('highpass_RR')
         self.lowpass_RR = filter.Filter('lowpass_RR')
 
-        self.HR_filtered_queue = list_of_variables_for_threads["HR_filtered_queue"]
-        self.RR_filtered_queue = list_of_variables_for_threads["RR_filtered_queue"]
+#         self.movavg_HR = filter.Filter('movavg_HR')
+        self.movavg_HR = filter.Filter('movavg')
+
+        self.HR_filtered_queue =  sv.list_of_variables_for_threads["HR_filtered_queue"]
+        self.RR_filtered_queue =  sv.list_of_variables_for_threads["RR_filtered_queue"]
+
+        self.HR_filtered_queue_movavg =  sv.list_of_variables_for_threads["HR_filtered_queue_movavg"]
         # TODO remove
-        self.RTB_final_queue = list_of_variables_for_threads["RTB_final_queue"]
+        self.RTB_final_queue =  sv.list_of_variables_for_threads["RTB_final_queue"]
 
         self.amp_data = []
 
+        self.f_raw_csv =  sv.list_of_variables_for_threads["f_raw_csv"]
+#         self.f_iq_csv  = list_of_variables_for_threads["f_iq_csv"]
+
     def run(self):
-        self.client.start_streaming()  # Starts Acconeers streaming server
-        while self.go:
+#         self.client.start_streaming()  # Starts Acconeers streaming server
+        self.client.start_session()  # Starts Acconeers streaming server
+#         while self.go:
+        while sv.list_of_variables_for_threads["terminate_yet"]:
             self.run_times = self.run_times + 1
             # This data is an 1D array in terminal print, not in Python script however....
             data = self.get_data()
@@ -153,20 +178,47 @@ class DataAcquisition(threading.Thread):
                     tracked_data["relative distance"])
                 bandpass_filtered_data_HR = self.lowpass_HR.filter(highpass_filtered_data_HR)
 
+                bandpass_filtered_data_HR_movavg = self.movavg_HR.filter(bandpass_filtered_data_HR)
+
                 highpass_filtered_data_RR = self.highpass_RR.filter(
                     tracked_data["relative distance"])
                 bandpass_filtered_data_RR = self.lowpass_RR.filter(highpass_filtered_data_RR)
 
-                if self.run_measurement:
+#                 if self.run_measurement:
+                if sv.list_of_variables_for_threads["run_measurement"]:
+
+#                     if self.go:
+                    if sv.list_of_variables_for_threads["is_measuring"]:
+
+                        dt_now = datetime.datetime.now()
+
+                        self.f_raw_csv =  sv.list_of_variables_for_threads["f_raw_csv"]
+                        if not self.f_raw_csv.closed:
+                            self.f_raw_csv.write(str(dt_now) + ' ' + \
+                                                str(tracked_data["relative distance"]) + ' ' + \
+                                                str(bandpass_filtered_data_HR) + ' ' + \
+                                                str(bandpass_filtered_data_HR_movavg) + ' ' + \
+                                                str(bandpass_filtered_data_RR) + '\n')
+
+#                     self.f_iq_csv.write(str(dt_now) + ' ')
+#                     for iq in np.array(data).flatten():
+#                         self.f_iq_csv.write(str(iq) + ' ')
+#                     self.f_iq_csv.write('\n')
+
                     self.HR_filtered_queue.put(
                         bandpass_filtered_data_HR)  # Put filtered data in output queue to send to SignalProcessing
+
+                    self.HR_filtered_queue_movavg.put(bandpass_filtered_data_HR_movavg)
+
                     self.RR_filtered_queue.put(bandpass_filtered_data_RR)
                     # self.RTB_final_queue.put(bandpass_filtered_data_RR)
                     # Send to app
                     if self.run_times % self.modulo_base == 0:
                         # Send real time breathing amplitude to the application
-                        self.bluetooth_server.write_data_to_app(
-                            tracked_data["real time breathing amplitude"], 'real time breath')
+#                         if self.go:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.bluetooth_server.write_data_to_app(
+                                tracked_data["real time breathing amplitude"], 'real time breath')
                         # self.bluetooth_server.write_data_to_app(
                         #    bandpass_filtered_data_HR, 'real time breath')
 
@@ -179,26 +231,31 @@ class DataAcquisition(threading.Thread):
                     self.go.pop(0)
                     break
         self.RR_filtered_queue.put(0)  # to quit the signal processing thread
+
+        self.HR_filtered_queue_movavg.put(0)
+
         # print('before for loop to fill HR queue')
         for i in range(600):
             # print("Data acq filling HR queue with 0:s")
             self.HR_filtered_queue.put(0)
         print("out of while go in radar")
         self.client.disconnect()
-        self.pg_process.close()
+#         self.pg_process.close()
+        if self.plot_graphs:
+            self.client.disconnect()
 
     def get_data(self):
         # self.client.get_next()
         info, data = self.client.get_next()  # get the next data from the radar
-        # print('info',info[-1]['sequence_number'],'run_times',self.run_times)
-        if info[-1]['sequence_number'] > self.run_times + 10:
-            # to remove delay if handling the data takes longer time than for the radar to get it
-            print("sequence diff over 10, removing difference",
-                  info[-1]['sequence_number']-self.run_times)
-            for i in range(0, info[-1]['sequence_number']-self.run_times):
-                self.client.get_next()  # getting the data without using it
-            info, data = self.client.get_next()
-            self.run_times = info[-1]['sequence_number']
+#         # print('info',info[-1]['sequence_number'],'run_times',self.run_times)
+#         if info[-1]['sequence_number'] > self.run_times + 10:
+#             # to remove delay if handling the data takes longer time than for the radar to get it
+#             print("sequence diff over 10, removing difference",
+#                   info[-1]['sequence_number']-self.run_times)
+#             for i in range(0, info[-1]['sequence_number']-self.run_times):
+#                 self.client.get_next()  # getting the data without using it
+#             info, data = self.client.get_next()
+#             self.run_times = info[-1]['sequence_number']
         return data
 
     def tracking(self, data):
@@ -386,7 +443,8 @@ class DataAcquisition(threading.Thread):
             # lf.heart_rate_reliability_csv.append(found_peak_reliability_int)
         elif self.initiate_write_respitory_rate:
             self.go.pop(0)
-            self.list_of_variables_for_threads["go"] = self.go
+#             self.list_of_variables_for_threads["go"] = self.go
+            sv.list_of_variables_for_threads["go"] = self.go
             # print("Out of while go heart_rate")
             np_csv = np.asarray(self.resp_rate_csv)
             # print("Saved as numpy array")
@@ -402,7 +460,7 @@ class DataAcquisition(threading.Thread):
                       str(self.bluetooth_server.address_list[self.bluetooth_server.client_list.index(client)]))
             self.bluetooth_server.server.close()
             print("server is now closed")
-            os.system("echo 'power off\nquit' | bluetoothctl")
+#             os.system("echo 'power off\nquit' | bluetoothctl")
 
 
 class PGUpdater:
@@ -443,7 +501,8 @@ class PGUpdater:
         #     pen=example_utils.pg_pen_cycler(0))
         # self.distance_over_time_plot2.setYRange(0.4, 1.5)
 
-        self.smooth_max = example_utils.SmoothMax(self.config.sweep_rate)
+#         self.smooth_max = example_utils.SmoothMax(self.config.sweep_rate)
+        self.smooth_max = et.utils.SmoothMax(self.config.update_rate)
         self.first = True
 
     def update(self, data):
