@@ -76,7 +76,11 @@ def main():
                                         "is_measuring": is_measuring,
                                         "f_bp_csv": None,
                                         "f_bpint_csv": None,
-                                        "HR_filtered_queue_movavg": HR_filtered_queue_movavg}
+                                        "HR_filtered_queue_movavg": HR_filtered_queue_movavg,
+                                        "f_daq_run_prctim_csv": None,
+                                        "f_sgp_hre_prctim_csv": None,
+                                        "f_sgp_rre_prctim_csv": None,
+                                        "f_sgp_bpe_prctim_csv": None}
     FFTfreq = [1, 2, 3]
     FFTamplitude = [1, 2, 3]
     peak_freq = [1]

@@ -194,6 +194,10 @@ class BluetoothServer:
                         self.f_hea9_csv.close()
                         self.f_hea10_csv.close()
                         self.f_hea11_csv.close()
+                        self.f_daq_run_prctim_csv.close()
+                        self.f_sgp_hre_prctim_csv.close()
+                        self.f_sgp_rre_prctim_csv.close()
+                        self.f_sgp_bpe_prctim_csv.close()
 
                         print(filename_hr_csv + " is closed")
                         print(filename_rr_csv + " is closed")
@@ -211,6 +215,10 @@ class BluetoothServer:
                         print(filename_hea9_csv + " is closed")
                         print(filename_hea10_csv + " is closed")
                         print(filename_hea11_csv + " is closed")
+                        print(filename_daq_run_prctim_csv + " is closed")
+                        print(filename_sgp_hre_prctim_csv + " is closed")
+                        print(filename_sgp_rre_prctim_csv + " is closed")
+                        print(filename_sgp_bpe_prctim_csv + " is closed")
 
                         os.system("sudo chown futu-re:futu-re " + filepath + date_time + "/log*.csv")
 
@@ -340,6 +348,10 @@ class BluetoothServer:
                     filename_hea11_csv = filepath + date_time + '/log_hea11_' + date_time + '.csv'  # CSV file for heart_rate () internal data (old_heart_freq_list)
                     filename_bp_csv    = filepath + date_time + '/log_bp_'    + date_time + '.csv'  # CSV file for blood pressure
                     filename_bpint_csv = filepath + date_time + '/log_bpint_' + date_time + '.csv'  # CSV file for blood_pressure() internal data
+                    filename_daq_run_prctim_csv = filepath + date_time + '/log_daq_run_prctim_' + date_time + '.csv'  # CSV file for recording processing time of run()@data_acquisition_module.py
+                    filename_sgp_hre_prctim_csv = filepath + date_time + '/log_sgp_hre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of heart_rate()@signal_processing_module.py
+                    filename_sgp_rre_prctim_csv = filepath + date_time + '/log_sgp_rre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of schmittTrigger()@signal_processing_module.py
+                    filename_sgp_bpe_prctim_csv = filepath + date_time + '/log_sgp_bpe_prctim_' + date_time + '.csv'  # CSV file for recording processing time of blood_pressure()@signal_processing_module.py
 
                     self.f_hr_csv    = open(filename_hr_csv,    'w')
                     self.f_rr_csv    = open(filename_rr_csv,    'w')
@@ -359,6 +371,10 @@ class BluetoothServer:
                     self.f_hea11_csv = open(filename_hea11_csv, 'w')
                     self.f_bp_csv    = open(filename_bp_csv,    'w')
                     self.f_bpint_csv = open(filename_bpint_csv, 'w')
+                    self.f_daq_run_prctim_csv = open(filename_daq_run_prctim_csv, 'w')
+                    self.f_sgp_hre_prctim_csv = open(filename_sgp_hre_prctim_csv, 'w')
+                    self.f_sgp_rre_prctim_csv = open(filename_sgp_rre_prctim_csv, 'w')
+                    self.f_sgp_bpe_prctim_csv = open(filename_sgp_bpe_prctim_csv, 'w')
 
                     if not self.f_hr_csv.closed:
                         self.f_hr_csv.write('date time heart_rate reliability\n')
@@ -404,6 +420,14 @@ class BluetoothServer:
                         self.f_bp_csv.write('date time SBP MBP DBP SBP_movavg MBP_movavg DBP_movavg\n')
                     if not self.f_bpint_csv.closed:
                         self.f_bpint_csv.write('date,time,movavgHRdata,idxpeak0,idxbottom,idxpea1,SBP,MBP,DBP\n')
+                    if not self.f_daq_run_prctim_csv.closed:
+                        self.f_daq_run_prctim_csv.write('date time processing_time[ms] remark\n')
+                    if not self.f_sgp_hre_prctim_csv.closed:
+                        self.f_sgp_hre_prctim_csv.write('date time processing_time[ms] remark\n')
+                    if not self.f_sgp_rre_prctim_csv.closed:
+                        self.f_sgp_rre_prctim_csv.write('date time processing_time[ms] remark\n')
+                    if not self.f_sgp_bpe_prctim_csv.closed:
+                        self.f_sgp_bpe_prctim_csv.write('date time processing_time[ms] remark\n')
 
                     sv.list_of_variables_for_threads["f_hr_csv"]    = self.f_hr_csv
                     sv.list_of_variables_for_threads["f_rr_csv"]    = self.f_rr_csv
@@ -423,6 +447,10 @@ class BluetoothServer:
                     sv.list_of_variables_for_threads["f_hea11_csv"] = self.f_hea11_csv
                     sv.list_of_variables_for_threads["f_bpint_csv"] = self.f_bpint_csv
                     sv.list_of_variables_for_threads["f_bp_csv"]    = self.f_bp_csv
+                    sv.list_of_variables_for_threads["f_daq_run_prctim_csv"] = self.f_daq_run_prctim_csv
+                    sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"] = self.f_sgp_hre_prctim_csv
+                    sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"] = self.f_sgp_rre_prctim_csv
+                    sv.list_of_variables_for_threads["f_sgp_bpe_prctim_csv"] = self.f_sgp_bpe_prctim_csv
 
                     # 計測開始時刻記録処理
                     st_dt_tm = date_time.split('_')

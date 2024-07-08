@@ -83,16 +83,19 @@ class SignalProcessing:
         self.heart_rate_thread.start()
 
         self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
+        self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
         self.movavg_SBP = filter.Filter('movavg', window_size_for_movavg=13)
         self.movavg_MBP = filter.Filter('movavg', window_size_for_movavg=13)
         self.movavg_DBP = filter.Filter('movavg', window_size_for_movavg=13)
 
         # Starta blood_pressure
         print("Start thread blood_pressure")
+        self.f_sgp_bpe_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_bpe_prctim_csv"]
         self.blood_pressure_thread = threading.Thread(target=self.blood_pressure)
         self.blood_pressure_thread.start()
 
         self.f_sch_csv =  sv.list_of_variables_for_threads["f_sch_csv"]
+        self.f_sgp_rre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"]
 
         # Starta schmitt
         print("Start thread schmittTrigger")
@@ -188,6 +191,19 @@ class SignalProcessing:
                     if not self.f_hea11_csv.closed:
                         self.f_hea11_csv.write(str(dt_now_) + ',')
 
+                    dt_pass1 = datetime.datetime.now()
+                    dt_pass2 = datetime.datetime.now()
+                    dt_pass3 = datetime.datetime.now()
+                    dt_pass4 = datetime.datetime.now()
+                    dt_pass5 = datetime.datetime.now()
+                    dt_pass6 = datetime.datetime.now()
+
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
+                            if not self.f_sgp_hre_prctim_csv.closed:
+                                dt_pass1 = datetime.datetime.now()
+
                     # print("in while loop heart_rate")
                     fft_signal_out = self.windowedFFT()
 
@@ -196,12 +212,28 @@ class SignalProcessing:
                             self.f_hea1_csv.write(str(fft) + " ")  # for debug
                         self.f_hea1_csv.write("\n")  # for debug
 
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
+                            if not self.f_sgp_hre_prctim_csv.closed:
+                                dt_pass2 = datetime.datetime.now()
+                                elapsed_time = dt_pass2 - dt_pass1
+                                self.f_sgp_hre_prctim_csv.write(str(dt_pass2) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "calculate_fft_signal_out" + '\n')
+
                     fft_signal_out_dB = 20*np.log10(fft_signal_out)  # As of May 7, lenght of vector is 600
 
                     if not self.f_hea2_csv.closed:  # for debug
                         for fft_dB in fft_signal_out_dB:  # for debug
                             self.f_hea2_csv.write(str(fft_dB) + " ")  # for debug
                         self.f_hea2_csv.write("\n")  # for debug
+
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
+                            if not self.f_sgp_hre_prctim_csv.closed:
+                                dt_pass3 = datetime.datetime.now()
+                                elapsed_time = dt_pass3 - dt_pass2
+                                self.f_sgp_hre_prctim_csv.write(str(dt_pass3) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "calculate_fft_signal_out_dB" + '\n')
 
                     self.FFT_old_values[index_in_FFT_old_values][:] = fft_signal_out_dB
 
@@ -213,6 +245,14 @@ class SignalProcessing:
                         for fft_avgd in FFT_averaged:  # for debug
                             self.f_hea3_csv.write(str(fft_avgd) + " ")  # for debug
                         self.f_hea3_csv.write("\n")  # for debug
+
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
+                            if not self.f_sgp_hre_prctim_csv.closed:
+                                dt_pass4 = datetime.datetime.now()
+                                elapsed_time = dt_pass4 - dt_pass3
+                                self.f_sgp_hre_prctim_csv.write(str(dt_pass4) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "calculate_FFT_averaged" + '\n')
 
                     #print("Length of averaged FFT: ", len(FFT_averaged))
                     # Returns the peaks in set inteval from averaged FFT
@@ -231,6 +271,14 @@ class SignalProcessing:
                     if not self.f_hea6_csv.closed:
                         self.f_hea6_csv.write(str(FFT_counter) + "," + \
                                               str(index_in_FFT_old_values) + ",")
+
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
+                            if not self.f_sgp_hre_prctim_csv.closed:
+                                dt_pass5 = datetime.datetime.now()
+                                elapsed_time = dt_pass5 - dt_pass4
+                                self.f_sgp_hre_prctim_csv.write(str(dt_pass5) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "calculate_peak_f_a" + '\n')
 
 #                     if len(peak_freq) > 0 and np.amin(peak_amplitude) > -40 and np.amax(peak_amplitude) > -30 and time.time() - start_time > 50:
                     if len(peak_freq) > 0 and np.amin(peak_amplitude) > -45 and np.amax(peak_amplitude) > -35 and time.time() - start_time > 50:
@@ -479,6 +527,14 @@ class SignalProcessing:
                         # print("server is now closed")
                         # os.system("echo 'power off\nquit' | bluetoothctl")
 
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
+                            if not self.f_sgp_hre_prctim_csv.closed:
+                                dt_pass6 = datetime.datetime.now()
+                                elapsed_time = dt_pass6 - dt_pass1
+                                self.f_sgp_hre_prctim_csv.write(str(dt_pass6) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "heart_rate()_while_loop_time" + '\n')
+
         print("Out of pulse")
 
     def mean_of_old_values(self, FFT_counter):  # Check
@@ -503,17 +559,44 @@ class SignalProcessing:
         # window_width = len(fft_window)  # size of each window
         # window_slide = int(np.round(window_width*(1-overlap/100)))  # number of overlapping points
 
+        dt_pass1 = datetime.datetime.now()
+        dt_pass2 = datetime.datetime.now()
+        dt_pass3 = datetime.datetime.now()
+
+        if sv.list_of_variables_for_threads["run_measurement"]:
+            if sv.list_of_variables_for_threads["is_measuring"]:
+                self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
+                if not self.f_sgp_hre_prctim_csv.closed:
+                    dt_pass1 = datetime.datetime.now()
+
         # print("Window slide: ", window_slide)
         for i in range(self.window_slide):  # fills the fft_window array with window_slide values from filtered queue
             self.fft_window[self.index_fft] = self.HR_filtered_queue.get()
             self.index_fft += 1
             if self.index_fft == self.window_width:
                 self.index_fft = 0
+
+        if sv.list_of_variables_for_threads["run_measurement"]:
+            if sv.list_of_variables_for_threads["is_measuring"]:
+                self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
+                if not self.f_sgp_hre_prctim_csv.closed:
+                    dt_pass2 = datetime.datetime.now()
+                    elapsed_time = dt_pass2 - dt_pass1
+                    self.f_sgp_hre_prctim_csv.write(str(dt_pass2) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "get_HR_filtered_queue" + '\n')
+
         # TODO: Check if necessary. # roll the matrix so that the last inserted value is to the right.
         self.fft_window = np.roll(self.fft_window, -(self.index_fft+1))
         fft_signal_out = self.smartFFT()  # do fft
         # TODO: check if necessayr. # roll the matrix back
         self.fft_window = np.roll(self.fft_window, (self.index_fft+1))
+
+        if sv.list_of_variables_for_threads["run_measurement"]:
+            if sv.list_of_variables_for_threads["is_measuring"]:
+                self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
+                if not self.f_sgp_hre_prctim_csv.closed:
+                    dt_pass3 = datetime.datetime.now()
+                    elapsed_time = dt_pass3 - dt_pass1
+                    self.f_sgp_hre_prctim_csv.write(str(dt_pass3) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "windowedFFT()" + '\n')
 
         return fft_signal_out
 
@@ -654,6 +737,19 @@ class SignalProcessing:
 
 #             while self.go:
                 while sv.list_of_variables_for_threads["is_measuring"]:
+
+                    dt_pass1 = datetime.datetime.now()
+                    dt_pass2 = datetime.datetime.now()
+                    dt_pass3 = datetime.datetime.now()
+                    dt_pass4 = datetime.datetime.now()
+
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_bpe_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_bpe_prctim_csv"]
+                            if not self.f_sgp_bpe_prctim_csv.closed:
+                                dt_pass1 = datetime.datetime.now()
+
+                    self.measurement_start_time =  sv.list_of_variables_for_threads["measurement_start_time"]
                     if state == 0 and movavgHRdata[-2] < 0 and movavgHRdata[-1] >= 0:
                         idx1 = len(movavgHRdata)
                         tempList = movavgHRdata[idx0 - 2 : idx1]
@@ -692,7 +788,22 @@ class SignalProcessing:
                         idx0 = len(movavgHRdata) - 1
                         idxpeak0 = idxpeak1 - idx1 + 2
 
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_bpe_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_bpe_prctim_csv"]
+                            if not self.f_sgp_bpe_prctim_csv.closed:
+                                dt_pass2 = datetime.datetime.now()
+
                     val = self.HR_filtered_queue_movavg.get()
+
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_bpe_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_bpe_prctim_csv"]
+                            if not self.f_sgp_bpe_prctim_csv.closed:
+                                dt_pass3 = datetime.datetime.now()
+                                elapsed_time = dt_pass3 - dt_pass2
+                                self.f_sgp_bpe_prctim_csv.write(str(dt_pass3) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "get_HR_filtered_queue_movavg" + '\n')
+
                     movavgHRdata.append(val)
                     dt_now = datetime.datetime.now()
                     dt_now_ = str(dt_now).replace(' ', ',')
@@ -700,6 +811,14 @@ class SignalProcessing:
                         self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
                         if not self.f_bpint_csv.closed:
                             self.f_bpint_csv.write(str(dt_now_) + ',' + str(movavgHRdata[-1]) + ',,,,,,\n')
+
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_bpe_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_bpe_prctim_csv"]
+                            if not self.f_sgp_bpe_prctim_csv.closed:
+                                dt_pass4 = datetime.datetime.now()
+                                elapsed_time = dt_pass4 - dt_pass1
+                                self.f_sgp_bpe_prctim_csv.write(str(dt_pass4) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "blood_pressure()_while_loop_time" + '\n')
 
         print("out of blood_pressure")
 
@@ -737,6 +856,15 @@ class SignalProcessing:
 #                 while self.go:
                 while sv.list_of_variables_for_threads["is_measuring"]:
 
+                    dt_pass1 = datetime.datetime.now()
+                    dt_pass2 = datetime.datetime.now()
+
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_rre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"]
+                            if not self.f_sgp_rre_prctim_csv.closed:
+                                dt_pass1 = datetime.datetime.now()
+
                     self.f_sch_csv =  sv.list_of_variables_for_threads["f_sch_csv"]
 
                     dt_now = datetime.datetime.now()
@@ -757,7 +885,22 @@ class SignalProcessing:
                         self.time_when_sent_last_value = time.time()
                         # For the time being, I tried the same
                         count = 0
+
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_rre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"]
+                            if not self.f_sgp_rre_prctim_csv.closed:
+                                dt_pass2 = datetime.datetime.now()
+
                     trackedRRvector[countHys - 1] = self.RR_filtered_queue.get()
+
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_rre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"]
+                            if not self.f_sgp_rre_prctim_csv.closed:
+                                dt_pass3 = datetime.datetime.now()
+                                elapsed_time = dt_pass3 - dt_pass2
+                                self.f_sgp_rre_prctim_csv.write(str(dt_pass3) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "get_RR_filtered_queue" + '\n')
 
                     if not self.f_sch_csv.closed:
                         self.f_sch_csv.write(str(countHys) + " " + str(trackedRRvector[countHys - 1]) + " ")
@@ -837,6 +980,14 @@ class SignalProcessing:
 
                     end = time.time()
                     # print("Tid genom schmittTrigger: ", end-start)
+
+                    if sv.list_of_variables_for_threads["run_measurement"]:
+                        if sv.list_of_variables_for_threads["is_measuring"]:
+                            self.f_sgp_rre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"]
+                            if not self.f_sgp_rre_prctim_csv.closed:
+                                dt_pass4 = datetime.datetime.now()
+                                elapsed_time = dt_pass4 - dt_pass1
+                                self.f_sgp_rre_prctim_csv.write(str(dt_pass4) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "schmittTrigger()_while_loop_time" + '\n')
 
         print("out of schmittTrigger")
 
