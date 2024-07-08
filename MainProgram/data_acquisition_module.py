@@ -8,6 +8,7 @@ import queue
 import os
 
 import datetime
+import signal as sgnl
 
 # Import for graphs
 import pyqtgraph as pg
@@ -25,6 +26,15 @@ import filter
 import acconeer.exptool as et
 
 import shared_variables as sv
+
+timer_event = threading.Event()
+
+def int_timer(signum, stack):
+    global timer_event
+    timer_event.set()
+
+sgnl.signal(sgnl.SIGALRM, int_timer)
+sgnl.setitimer(sgnl.ITIMER_REAL, 0.05, 0.05)
 
 
 class DataAcquisition(threading.Thread):
@@ -168,6 +178,11 @@ class DataAcquisition(threading.Thread):
         self.client.start_session()  # Starts Acconeers streaming server
 #         while self.go:
         while sv.list_of_variables_for_threads["terminate_yet"]:
+
+            global timer_event
+            timer_event.wait()
+            timer_event.clear()
+
             self.run_times = self.run_times + 1
             # This data is an 1D array in terminal print, not in Python script however....
 
