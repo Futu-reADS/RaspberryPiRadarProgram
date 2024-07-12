@@ -404,6 +404,16 @@ class DataAcquisition(threading.Thread):
 #                 self.client.get_next()  # getting the data without using it
 #             info, data = self.client.get_next()
 #             self.run_times = info[-1]['sequence_number']
+        if sv.list_of_variables_for_threads["run_measurement"]:
+            if sv.list_of_variables_for_threads["is_measuring"]:
+                self.f_info_csv =  sv.list_of_variables_for_threads["f_info_csv"]
+                if not self.f_info_csv.closed:
+                    dt_now = datetime.datetime.now()
+                    self.f_info_csv.write(str(dt_now) + ' ' + \
+                                          str(info[0]["tick"]) + ' ' + \
+                                          str(info[0]["data_saturated"]) + ' ' + \
+                                          str(info[0]["missed_data"]) + ' ' + \
+                                          str(info[0]["data_quality_warning"]) + '\n')
         return data
 
     def tracking(self, data):
