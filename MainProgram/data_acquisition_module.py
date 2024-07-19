@@ -174,6 +174,10 @@ class DataAcquisition(threading.Thread):
         self.f_raw_csv =  sv.list_of_variables_for_threads["f_raw_csv"]
 #         self.f_iq_csv  = list_of_variables_for_threads["f_iq_csv"]
         self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
+        self.is_first_get_data_call = True
+        self.reference_date_time = datetime.datetime.now()
+        self.reference_tick_value = 0
+        self.current_date_time = datetime.datetime.now()
 
     def run(self):
 #         self.client.start_streaming()  # Starts Acconeers streaming server
@@ -298,7 +302,7 @@ class DataAcquisition(threading.Thread):
 #                     if self.go:
                     if sv.list_of_variables_for_threads["is_measuring"]:
 
-                        dt_now = datetime.datetime.now()
+                        dt_now = self.current_date_time
 
                         self.f_raw_csv =  sv.list_of_variables_for_threads["f_raw_csv"]
                         if not self.f_raw_csv.closed:
@@ -404,11 +408,23 @@ class DataAcquisition(threading.Thread):
 #                 self.client.get_next()  # getting the data without using it
 #             info, data = self.client.get_next()
 #             self.run_times = info[-1]['sequence_number']
+
+        if self.is_first_get_data_call == True:
+            self.reference_date_time = datetime.datetime.now()
+            self.reference_tick_value = info[0]["tick"]
+            self.current_date_time = self.reference_date_time
+            self.is_first_get_data_call = False
+        else:
+            tick_diff = info[0]["tick"] - self.reference_tick_value
+            self.current_date_time = self.reference_date_time + datetime.timedelta(microseconds=tick_diff)
+
+        sv.list_of_variables_for_threads["current_date_time"] = self.current_date_time
+
         if sv.list_of_variables_for_threads["run_measurement"]:
             if sv.list_of_variables_for_threads["is_measuring"]:
                 self.f_info_csv =  sv.list_of_variables_for_threads["f_info_csv"]
                 if not self.f_info_csv.closed:
-                    dt_now = datetime.datetime.now()
+                    dt_now = self.current_date_time
                     self.f_info_csv.write(str(dt_now) + ' ' + \
                                           str(info[0]["tick"]) + ' ' + \
                                           str(info[0]["data_saturated"]) + ' ' + \

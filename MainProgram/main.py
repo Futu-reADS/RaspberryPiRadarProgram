@@ -81,7 +81,8 @@ def main():
                                         "f_sgp_hre_prctim_csv": None,
                                         "f_sgp_rre_prctim_csv": None,
                                         "f_sgp_bpe_prctim_csv": None,
-                                        "f_info_csv": None}
+                                        "f_info_csv": None,
+                                        "current_date_time": None}
     FFTfreq = [1, 2, 3]
     FFTamplitude = [1, 2, 3]
     peak_freq = [1]

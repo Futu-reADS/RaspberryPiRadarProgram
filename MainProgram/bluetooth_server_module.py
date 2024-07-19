@@ -503,7 +503,7 @@ class BluetoothServer:
     def write_data_to_app(self, data, data_type):
         # print(data + ' ' + data_type)
 
-        dt_now = datetime.datetime.now()
+        dt_now = sv.list_of_variables_for_threads["current_date_time"]
 
         if data_type == 'heart rate':
             string = ' HR ' + str(data) + ' '

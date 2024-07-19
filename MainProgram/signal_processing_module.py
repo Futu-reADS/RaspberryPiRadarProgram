@@ -166,7 +166,7 @@ class SignalProcessing:
                     else:
                         start_time = self.measurement_start_time[0]
 
-                    dt_now = datetime.datetime.now()
+                    dt_now = sv.list_of_variables_for_threads["current_date_time"]
                     dt_now_ = str(dt_now).replace(' ', ',')
                     if not self.f_hea1_csv.closed:  # for debug
                         self.f_hea1_csv.write(str(dt_now) + ' ')  # for debug
@@ -709,7 +709,7 @@ class SignalProcessing:
                     if val >= 0 and pval < 0:
                         movavgHRdata.append(pval)
                         movavgHRdata.append(val)
-                        dt_now = datetime.datetime.now()
+                        dt_now = sv.list_of_variables_for_threads["current_date_time"]
                         dt_now_ = str(dt_now).replace(' ', ',')
                         self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
                         if not self.f_bpint_csv.closed:
@@ -721,7 +721,7 @@ class SignalProcessing:
                 while True:
                     val = self.HR_filtered_queue_movavg.get()
                     movavgHRdata.append(val)
-                    dt_now = datetime.datetime.now()
+                    dt_now = sv.list_of_variables_for_threads["current_date_time"]
                     dt_now_ = str(dt_now).replace(' ', ',')
                     self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
                     if not self.f_bpint_csv.closed:
@@ -776,7 +776,7 @@ class SignalProcessing:
                         self.bluetooth_server.write_data_to_app(
                             str(sbp) + ' ' + str(mbp) + ' ' + str(dbp) + ' ' \
                             + str(sbp_movavg) + ' ' + str(mbp_movavg) + ' ' + str(dbp_movavg), 'blood pressure')  # Send to app
-                        dt_now = datetime.datetime.now()
+                        dt_now = sv.list_of_variables_for_threads["current_date_time"]
                         dt_now_ = str(dt_now).replace(' ', ',')
                         self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
                         if not self.f_bpint_csv.closed:
@@ -805,7 +805,7 @@ class SignalProcessing:
                                 self.f_sgp_bpe_prctim_csv.write(str(dt_pass3) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "get_HR_filtered_queue_movavg" + '\n')
 
                     movavgHRdata.append(val)
-                    dt_now = datetime.datetime.now()
+                    dt_now = sv.list_of_variables_for_threads["current_date_time"]
                     dt_now_ = str(dt_now).replace(' ', ',')
                     if not (state == 1 and movavgHRdata[-2] >= 0 and movavgHRdata[-1] < 0):
                         self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
@@ -867,7 +867,7 @@ class SignalProcessing:
 
                     self.f_sch_csv =  sv.list_of_variables_for_threads["f_sch_csv"]
 
-                    dt_now = datetime.datetime.now()
+                    dt_now = sv.list_of_variables_for_threads["current_date_time"]
                     if not self.f_sch_csv.closed:
                         self.f_sch_csv.write(str(dt_now) + ' ')
 
