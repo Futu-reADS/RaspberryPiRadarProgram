@@ -9,6 +9,7 @@ import queue
 import os
 
 import datetime
+from decimal import Decimal, ROUND_HALF_UP
 
 import filter
 import shared_variables as sv
@@ -456,9 +457,12 @@ class SignalProcessing:
                             measurement_data_stable_state = True
 
                     if not first_real_value:
-                        print("Found heart rate Hz and BPM: ", found_heart_freq, int(
-                            60*found_heart_freq), 'Reliability:', found_peak_reliability)
-                        found_heart_rate = int(60 * found_heart_freq)
+#                         print("Found heart rate Hz and BPM: ", found_heart_freq, int(
+#                             60*found_heart_freq), 'Reliability:', found_peak_reliability)
+#                         found_heart_rate = int(60 * found_heart_freq)
+                        found_heart_rate_dcml = Decimal(str(60 * found_heart_freq)).quantize(Decimal(str(10**(-2))), rounding=ROUND_HALF_UP)
+                        found_heart_rate = float(found_heart_rate_dcml)
+                        print("Found heart rate Hz and BPM: ", found_heart_freq, found_heart_rate, 'Reliability:', found_peak_reliability)
                         # Do not notify clients until measurement data is stable
                         if measurement_data_stable_state:
                             self.bluetooth_server.write_data_to_app(
