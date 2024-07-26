@@ -41,8 +41,8 @@ class SignalProcessing:
 
         # Variables for Pulse detection
         self.index_fft = 0
-        self.T_resolution = 20  # förut 30
-#         self.T_resolution = 25  # förut 30
+#         self.T_resolution = 20  # förut 30
+        self.T_resolution = 40  # förut 30
         self.overlap = 90  # Percentage of old values for the new FFT
         self.beta = 1  # Kaiser window form
         self.tau = 12  # TODO Beskriva alla variabler
@@ -381,13 +381,13 @@ class SignalProcessing:
                                 found_peak_reliability = "Low"  # TODO uncertain?
                                 found_peak_reliability_int = 2
 
-                            if len(close_peaks) > 1:
-#                             if len(close_peaks) >= 4:  # case for self.sample_freq = 40
+#                             if len(close_peaks) > 1:
+                            if len(close_peaks) >= 4:  # case for self.T_resolution = 40
                                 print('averaging, old:', found_heart_freq)
                                 found_heart_freq = np.mean(close_peaks)
 
-                            if len(close_disturbing_peaks) > 3 and found_heart_freq_old > 1:
-#                             if len(close_disturbing_peaks) >= 8 and found_heart_freq_old > 1:  # case for self.sample_freq = 40
+#                             if len(close_disturbing_peaks) > 3 and found_heart_freq_old > 1:
+                            if len(close_disturbing_peaks) >= 8 and found_heart_freq_old > 1:  # case for self.T_resolution = 40
                                 # To many disturbing peaks around, can't identify the correct one
                                 #print('Too many disturbing peaks around, can\'t identify the correct one')
                                 found_heart_freq = found_heart_freq_old
@@ -634,24 +634,9 @@ class SignalProcessing:
         F_scan_lower = 0.8
         F_scan_upper = 3
         #print("len self freq: ", len(self.freq))
-        FFT_in_interval = FFT_averaged[self.freq <= F_scan_upper]  # case for self.sample_freq = 20
-        freq2 = self.freq[self.freq <= F_scan_upper]  # case for self.sample_freq = 20
-#         freq_ = np.linspace(0, self.sample_freq/4, num=int(self.total_fft_length/2))  # case for self.sample_freq = 40
-
-#         print('freq_ = ' + str(len(freq_)))  # for debug
-
-#         FFT_in_interval = FFT_averaged[freq_ <= F_scan_upper]  # case for self.sample_freq = 40
-
-#         print('FFT_in_interval[-1] = ' + str(FFT_in_interval[-1]))  # for debug
-
-#         freq2 = freq_[freq_ <= F_scan_upper]  # case for self.sample_freq = 40
-
-#         print('freq2[0] = ' + str(freq2[0]) + ', freq2[-1] = ' + str(freq2[-1]))  # for debug
-
+        FFT_in_interval = FFT_averaged[self.freq <= F_scan_upper]
+        freq2 = self.freq[self.freq <= F_scan_upper]
         FFT_in_interval = FFT_in_interval[freq2 > F_scan_lower]
-
-#         print('len(FFT_in_interval) = ' + str(len(FFT_in_interval)))  # for debug
-
         peak_freq_linspace = np.linspace(F_scan_lower, F_scan_upper, num=len(FFT_in_interval))
         #print("len of fft in interval: ", len(FFT_in_interval))
         #print("FFT_in_interval", FFT_in_interval, "\n", len(FFT_in_interval))
@@ -938,8 +923,7 @@ class SignalProcessing:
 #                             np.roll(freqArray, 1)
                             freqArray = np.roll(freqArray, 1)
                             # save the new frequency between two negative flanks
-                            freqArray[0] = self.sample_freq / count  # case for self.samplefreq = 20
-#                             freqArray[0] = (self.sample_freq / 2) / count  # case for self.sample_freq = 40
+                            freqArray[0] = self.sample_freq / count
                             # Take the mean value
                             # RR_final_queue is supposed to be the breathing rate queue that is sent to app
                             # self.RR_final_queue.put(self.getMeanOfFreqArray(freqArray, FHighRR, FLowRR))
