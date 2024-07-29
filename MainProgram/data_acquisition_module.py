@@ -193,108 +193,43 @@ class DataAcquisition(threading.Thread):
             self.run_times = self.run_times + 1
             # This data is an 1D array in terminal print, not in Python script however....
 
-            dt_pass1 = datetime.datetime.now()
-            dt_pass2 = datetime.datetime.now()
-            dt_pass3 = datetime.datetime.now()
-            dt_pass4 = datetime.datetime.now()
-            dt_pass5 = datetime.datetime.now()
-            dt_pass6 = datetime.datetime.now()
-            dt_pass7 = datetime.datetime.now()
-            dt_pass8 = datetime.datetime.now()
-            dt_pass9 = datetime.datetime.now()
-            dt_pass10 = datetime.datetime.now()
-            dt_pass11 = datetime.datetime.now()
-            dt_pass12 = datetime.datetime.now()
-            dt_pass13 = datetime.datetime.now()
-            dt_pass14 = datetime.datetime.now()
-
-            if sv.list_of_variables_for_threads["run_measurement"]:
-                if sv.list_of_variables_for_threads["is_measuring"]:
-                    self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                    if not self.f_daq_run_prctim_csv.closed:
-                        dt_pass1 = datetime.datetime.now()
+            dt_stlp = datetime.datetime.now()
 
             data = self.get_data()
 
-            if sv.list_of_variables_for_threads["run_measurement"]:
-                if sv.list_of_variables_for_threads["is_measuring"]:
-                    self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                    if not self.f_daq_run_prctim_csv.closed:
-                        dt_pass2 = datetime.datetime.now()
-                        elapsed_time = dt_pass2 - dt_pass1
-                        self.f_daq_run_prctim_csv.write(str(dt_pass2) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "get_data()" + '\n')
+            dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_stlp, "get_data()")
 
             tracked_data = self.tracking(data)  # processing data and tracking peaks
 
-            if sv.list_of_variables_for_threads["run_measurement"]:
-                if sv.list_of_variables_for_threads["is_measuring"]:
-                    self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                    if not self.f_daq_run_prctim_csv.closed:
-                        dt_pass3 = datetime.datetime.now()
-                        elapsed_time = dt_pass3 - dt_pass2
-                        self.f_daq_run_prctim_csv.write(str(dt_pass3) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "tracking()" + '\n')
+            sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "tracking()")
 
             # Test with acconeer filter for schmitt.
             if tracked_data is not None:
                 # filter the data
 
-                if sv.list_of_variables_for_threads["run_measurement"]:
-                    if sv.list_of_variables_for_threads["is_measuring"]:
-                        self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                        if not self.f_daq_run_prctim_csv.closed:
-                            dt_pass4 = datetime.datetime.now()
+                dt_tmp = datetime.datetime.now()
 
                 highpass_filtered_data_HR = self.highpass_HR.filter(
                     tracked_data["relative distance"])
 
-                if sv.list_of_variables_for_threads["run_measurement"]:
-                    if sv.list_of_variables_for_threads["is_measuring"]:
-                        self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                        if not self.f_daq_run_prctim_csv.closed:
-                            dt_pass5 = datetime.datetime.now()
-                            elapsed_time = dt_pass5 - dt_pass4
-                            self.f_daq_run_prctim_csv.write(str(dt_pass5) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "HPF_for_HR" + '\n')
+                dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "HPF_for_HR")
 
                 bandpass_filtered_data_HR = self.lowpass_HR.filter(highpass_filtered_data_HR)
 
-                if sv.list_of_variables_for_threads["run_measurement"]:
-                    if sv.list_of_variables_for_threads["is_measuring"]:
-                        self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                        if not self.f_daq_run_prctim_csv.closed:
-                            dt_pass6 = datetime.datetime.now()
-                            elapsed_time = dt_pass6 - dt_pass5
-                            self.f_daq_run_prctim_csv.write(str(dt_pass6) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "LPF_for_HR" + '\n')
+                dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "LPF_for_HR")
 
                 bandpass_filtered_data_HR_movavg = self.movavg_HR.filter(bandpass_filtered_data_HR)
 
-                if sv.list_of_variables_for_threads["run_measurement"]:
-                    if sv.list_of_variables_for_threads["is_measuring"]:
-                        self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                        if not self.f_daq_run_prctim_csv.closed:
-                            dt_pass7 = datetime.datetime.now()
-                            elapsed_time = dt_pass7 - dt_pass6
-                            self.f_daq_run_prctim_csv.write(str(dt_pass7) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "movavg_for_BP" + '\n')
+                dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "movavg_for_BP")
 
                 highpass_filtered_data_RR = self.highpass_RR.filter(
                     tracked_data["relative distance"])
 
-                if sv.list_of_variables_for_threads["run_measurement"]:
-                    if sv.list_of_variables_for_threads["is_measuring"]:
-                        self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                        if not self.f_daq_run_prctim_csv.closed:
-                            dt_pass8 = datetime.datetime.now()
-                            elapsed_time = dt_pass8 - dt_pass7
-                            self.f_daq_run_prctim_csv.write(str(dt_pass8) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "HPF_for_RR" + '\n')
+                dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "HPF_for_RR")
 
                 bandpass_filtered_data_RR = self.lowpass_RR.filter(highpass_filtered_data_RR)
 
-                if sv.list_of_variables_for_threads["run_measurement"]:
-                    if sv.list_of_variables_for_threads["is_measuring"]:
-                        self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                        if not self.f_daq_run_prctim_csv.closed:
-                            dt_pass9 = datetime.datetime.now()
-                            elapsed_time = dt_pass9 - dt_pass8
-                            self.f_daq_run_prctim_csv.write(str(dt_pass9) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "LPF_for_RR" + '\n')
+                sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "LPF_for_RR")
 
 #                 if self.run_measurement:
                 if sv.list_of_variables_for_threads["run_measurement"]:
@@ -317,43 +252,21 @@ class DataAcquisition(threading.Thread):
 #                         self.f_iq_csv.write(str(iq) + ' ')
 #                     self.f_iq_csv.write('\n')
 
-                    if sv.list_of_variables_for_threads["run_measurement"]:
-                        if sv.list_of_variables_for_threads["is_measuring"]:
-                            self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                            if not self.f_daq_run_prctim_csv.closed:
-                                dt_pass10 = datetime.datetime.now()
+                    dt_a = datetime.datetime.now()
 
                     self.HR_filtered_queue.put(
                         bandpass_filtered_data_HR)  # Put filtered data in output queue to send to SignalProcessing
 
-                    if sv.list_of_variables_for_threads["run_measurement"]:
-                        if sv.list_of_variables_for_threads["is_measuring"]:
-                            self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                            if not self.f_daq_run_prctim_csv.closed:
-                                dt_pass11 = datetime.datetime.now()
-                                elapsed_time = dt_pass11 - dt_pass10
-                                self.f_daq_run_prctim_csv.write(str(dt_pass11) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "put_HR_filterd_queue" + '\n')
+                    dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "put_HR_filterd_queue")
 
                     self.HR_filtered_queue_movavg.put(bandpass_filtered_data_HR_movavg)
 
-                    if sv.list_of_variables_for_threads["run_measurement"]:
-                        if sv.list_of_variables_for_threads["is_measuring"]:
-                            self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                            if not self.f_daq_run_prctim_csv.closed:
-                                dt_pass12 = datetime.datetime.now()
-                                elapsed_time = dt_pass12 - dt_pass11
-                                self.f_daq_run_prctim_csv.write(str(dt_pass12) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "put_HR_filtered_queue_movavg" + '\n')
+                    dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "put_HR_filterd_queue_movavg")
 
                     self.RR_filtered_queue.put(bandpass_filtered_data_RR)
                     # self.RTB_final_queue.put(bandpass_filtered_data_RR)
 
-                    if sv.list_of_variables_for_threads["run_measurement"]:
-                        if sv.list_of_variables_for_threads["is_measuring"]:
-                            self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                            if not self.f_daq_run_prctim_csv.closed:
-                                dt_pass13 = datetime.datetime.now()
-                                elapsed_time = dt_pass13 - dt_pass12
-                                self.f_daq_run_prctim_csv.write(str(dt_pass13) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "put_RR_filtered_queue" + '\n')
+                    sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "put_RR_filterd_queue")
 
                     # Send to app
                     if self.run_times % self.modulo_base == 0:
@@ -374,13 +287,7 @@ class DataAcquisition(threading.Thread):
                     self.go.pop(0)
                     break
 
-            if sv.list_of_variables_for_threads["run_measurement"]:
-                if sv.list_of_variables_for_threads["is_measuring"]:
-                    self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-                    if not self.f_daq_run_prctim_csv.closed:
-                        dt_pass14 = datetime.datetime.now()
-                        elapsed_time = dt_pass14 - dt_pass1
-                        self.f_daq_run_prctim_csv.write(str(dt_pass14) + ' ' + str(elapsed_time.total_seconds() * 1000) + ' ' + "run()_while_loop_time" + '\n')
+            sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_stlp, "run()_while_loop_time")
 
         self.RR_filtered_queue.put(0)  # to quit the signal processing thread
 
