@@ -27,6 +27,7 @@ import filter
 import acconeer.exptool as et
 
 import shared_variables as sv
+import pandas as pd
 
 # disable the timer
 # timer_event = threading.Event()
@@ -171,7 +172,7 @@ class DataAcquisition(threading.Thread):
 
         self.amp_data = []
 
-        self.f_raw_csv =  sv.list_of_variables_for_threads["f_raw_csv"]
+#         self.f_raw_csv =  sv.list_of_variables_for_threads["f_raw_csv"]
 #         self.f_iq_csv  = list_of_variables_for_threads["f_iq_csv"]
         self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
         self.is_first_get_data_call = True
@@ -198,10 +199,12 @@ class DataAcquisition(threading.Thread):
             data = self.get_data()
 
             dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_stlp, "get_data()")
+#             dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_stlp, "get_data()")
 
             tracked_data = self.tracking(data)  # processing data and tracking peaks
 
             sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "tracking()")
+#             sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "tracking()")
 
             # Test with acconeer filter for schmitt.
             if tracked_data is not None:
@@ -213,23 +216,28 @@ class DataAcquisition(threading.Thread):
                     tracked_data["relative distance"])
 
                 dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "HPF_for_HR")
+#                 dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "HPF_for_HR")
 
                 bandpass_filtered_data_HR = self.lowpass_HR.filter(highpass_filtered_data_HR)
 
                 dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "LPF_for_HR")
+#                 dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "LPF_for_HR")
 
                 bandpass_filtered_data_HR_movavg = self.movavg_HR.filter(bandpass_filtered_data_HR)
 
                 dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "movavg_for_BP")
+#                 dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "movavg_for_BP")
 
                 highpass_filtered_data_RR = self.highpass_RR.filter(
                     tracked_data["relative distance"])
 
                 dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "HPF_for_RR")
+#                 dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "HPF_for_RR")
 
                 bandpass_filtered_data_RR = self.lowpass_RR.filter(highpass_filtered_data_RR)
 
                 sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "LPF_for_RR")
+#                 sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "LPF_for_RR")
 
 #                 if self.run_measurement:
                 if sv.list_of_variables_for_threads["run_measurement"]:
@@ -237,36 +245,28 @@ class DataAcquisition(threading.Thread):
 #                     if self.go:
                     if sv.list_of_variables_for_threads["is_measuring"]:
 
-                        dt_now = self.current_date_time
-
-                        self.f_raw_csv =  sv.list_of_variables_for_threads["f_raw_csv"]
-                        if not self.f_raw_csv.closed:
-                            self.f_raw_csv.write(str(dt_now) + ' ' + \
-                                                str(tracked_data["relative distance"]) + ' ' + \
-                                                str(bandpass_filtered_data_HR) + ' ' + \
-                                                str(bandpass_filtered_data_HR_movavg) + ' ' + \
-                                                str(bandpass_filtered_data_RR) + '\n')
-
-#                     self.f_iq_csv.write(str(dt_now) + ' ')
-#                     for iq in np.array(data).flatten():
-#                         self.f_iq_csv.write(str(iq) + ' ')
-#                     self.f_iq_csv.write('\n')
-
-                    dt_a = datetime.datetime.now()
+                            data_to_write = str(tracked_data["relative distance"]) + ' ' + \
+                                            str(bandpass_filtered_data_HR) + ' ' + \
+                                            str(bandpass_filtered_data_HR_movavg) + ' ' + \
+                                            str(bandpass_filtered_data_RR)
+                            self.bluetooth_server.write_data_only_to_storage(data_to_write, 'raw')
 
                     self.HR_filtered_queue.put(
                         bandpass_filtered_data_HR)  # Put filtered data in output queue to send to SignalProcessing
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "put_HR_filterd_queue")
+#                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "put_HR_filterd_queue")
 
                     self.HR_filtered_queue_movavg.put(bandpass_filtered_data_HR_movavg)
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "put_HR_filterd_queue_movavg")
+#                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "put_HR_filterd_queue_movavg")
 
                     self.RR_filtered_queue.put(bandpass_filtered_data_RR)
                     # self.RTB_final_queue.put(bandpass_filtered_data_RR)
 
                     sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "put_RR_filterd_queue")
+#                     sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "put_RR_filterd_queue")
 
                     # Send to app
                     if self.run_times % self.modulo_base == 0:
@@ -288,6 +288,7 @@ class DataAcquisition(threading.Thread):
                     break
 
             sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_stlp, "run()_while_loop_time")
+#             sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_stlp, "run()_while_loop_time")
 
         self.RR_filtered_queue.put(0)  # to quit the signal processing thread
 
@@ -337,6 +338,11 @@ class DataAcquisition(threading.Thread):
                                           str(info[0]["data_saturated"]) + ' ' + \
                                           str(info[0]["missed_data"]) + ' ' + \
                                           str(info[0]["data_quality_warning"]) + '\n')
+#                 data_to_write_in_daq = str(info[0]["tick"]) + ' ' + \
+#                                        str(info[0]["data_saturated"]) + ' ' + \
+#                                        str(info[0]["missed_data"]) + ' ' + \
+#                                        str(info[0]["data_quality_warning"])
+#                 self.bluetooth_server.write_data_only_to_storage(data_to_write_in_daq, 'info')
         return data
 
     def tracking(self, data):

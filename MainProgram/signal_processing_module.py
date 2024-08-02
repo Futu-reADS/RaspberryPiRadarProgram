@@ -65,17 +65,6 @@ class SignalProcessing:
         self.FFT_old_values = np.zeros((self.number_of_old_FFT, int(
             self.total_fft_length/2)))  # Saving old values for moving mean
 
-        self.f_hea1_csv = sv.list_of_variables_for_threads["f_hea1_csv"]  # for debug
-        self.f_hea2_csv = sv.list_of_variables_for_threads["f_hea2_csv"]  # for debug
-        self.f_hea3_csv = sv.list_of_variables_for_threads["f_hea3_csv"]  # for debug
-        self.f_hea4_csv =  sv.list_of_variables_for_threads["f_hea4_csv"]
-        self.f_hea5_csv =  sv.list_of_variables_for_threads["f_hea5_csv"]
-        self.f_hea6_csv =  sv.list_of_variables_for_threads["f_hea6_csv"]
-        self.f_hea7_csv =  sv.list_of_variables_for_threads["f_hea7_csv"]
-        self.f_hea8_csv =  sv.list_of_variables_for_threads["f_hea8_csv"]
-        self.f_hea9_csv =  sv.list_of_variables_for_threads["f_hea9_csv"]
-        self.f_hea10_csv =  sv.list_of_variables_for_threads["f_hea10_csv"]
-        self.f_hea11_csv =  sv.list_of_variables_for_threads["f_hea11_csv"]
         self.measurement_start_time =  sv.list_of_variables_for_threads["measurement_start_time"]
 
         # Starta heart_rate
@@ -83,7 +72,6 @@ class SignalProcessing:
         self.heart_rate_thread = threading.Thread(target=self.heart_rate)
         self.heart_rate_thread.start()
 
-        self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
         self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
         self.movavg_SBP = filter.Filter('movavg', window_size_for_movavg=13)
         self.movavg_MBP = filter.Filter('movavg', window_size_for_movavg=13)
@@ -95,7 +83,6 @@ class SignalProcessing:
         self.blood_pressure_thread = threading.Thread(target=self.blood_pressure)
         self.blood_pressure_thread.start()
 
-        self.f_sch_csv =  sv.list_of_variables_for_threads["f_sch_csv"]
         self.f_sgp_rre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"]
 
         # Starta schmitt
@@ -132,6 +119,9 @@ class SignalProcessing:
                 index_in_FFT_old_values = 0  # Placement of old FFT in FFT_old_values
                 FFT_counter = 1  # In start to avg over FFT_counter before FFT_old_values is filled to max
                 found_heart_freq_old = 180/60  # Guess the first freq
+
+                found_heart_freq_amplitude_old = -40  # The initial value is assumed to be -40dB to avoid referencing before assignment.
+
                 # Variables for weigthed peaks
                 #multiplication_factor = 20
                 time_constant = 2
@@ -149,17 +139,6 @@ class SignalProcessing:
 #                 while self.go:
                 while sv.list_of_variables_for_threads["is_measuring"]:
 
-                    self.f_hea1_csv =  sv.list_of_variables_for_threads["f_hea1_csv"]  # for debug
-                    self.f_hea2_csv =  sv.list_of_variables_for_threads["f_hea2_csv"]  # for debug
-                    self.f_hea3_csv =  sv.list_of_variables_for_threads["f_hea3_csv"]  # for debug
-                    self.f_hea4_csv =  sv.list_of_variables_for_threads["f_hea4_csv"]
-                    self.f_hea5_csv =  sv.list_of_variables_for_threads["f_hea5_csv"]
-                    self.f_hea6_csv =  sv.list_of_variables_for_threads["f_hea6_csv"]
-                    self.f_hea7_csv =  sv.list_of_variables_for_threads["f_hea7_csv"]
-                    self.f_hea8_csv =  sv.list_of_variables_for_threads["f_hea8_csv"]
-                    self.f_hea9_csv =  sv.list_of_variables_for_threads["f_hea9_csv"]
-                    self.f_hea10_csv =  sv.list_of_variables_for_threads["f_hea10_csv"]
-                    self.f_hea11_csv =  sv.list_of_variables_for_threads["f_hea11_csv"]
                     self.measurement_start_time =  sv.list_of_variables_for_threads["measurement_start_time"]
 
                     if not self.measurement_start_time:
@@ -167,51 +146,24 @@ class SignalProcessing:
                     else:
                         start_time = self.measurement_start_time[0]
 
-                    dt_now = sv.list_of_variables_for_threads["current_date_time"]
-                    dt_now_ = str(dt_now).replace(' ', ',')
-                    if not self.f_hea1_csv.closed:  # for debug
-                        self.f_hea1_csv.write(str(dt_now) + ' ')  # for debug
-                    if not self.f_hea2_csv.closed:  # for debug
-                        self.f_hea2_csv.write(str(dt_now) + ' ')  # for debug
-                    if not self.f_hea3_csv.closed:  # for debug
-                        self.f_hea3_csv.write(str(dt_now) + ' ')  # for debug
-                    if not self.f_hea4_csv.closed:
-                        self.f_hea4_csv.write(str(dt_now) + ' ')
-                    if not self.f_hea5_csv.closed:
-                        self.f_hea5_csv.write(str(dt_now) + ' ')
-                    if not self.f_hea6_csv.closed:
-                        self.f_hea6_csv.write(str(dt_now_) + ',')
-                    if not self.f_hea7_csv.closed:
-                        self.f_hea7_csv.write(str(dt_now_) + ',')
-                    if not self.f_hea8_csv.closed:
-                        self.f_hea8_csv.write(str(dt_now_) + ',')
-                    if not self.f_hea9_csv.closed:
-                        self.f_hea9_csv.write(str(dt_now_) + ',')
-                    if not self.f_hea10_csv.closed:
-                        self.f_hea10_csv.write(str(dt_now_) + ',')
-                    if not self.f_hea11_csv.closed:
-                        self.f_hea11_csv.write(str(dt_now_) + ',')
+                    data_to_write_in_hea6 = ""
 
                     dt_stlp = datetime.datetime.now()
 
                     # print("in while loop heart_rate")
                     fft_signal_out = self.windowedFFT()
 
-                    if not self.f_hea1_csv.closed:  # for debug
-                        for fft in fft_signal_out:  # for debug
-                            self.f_hea1_csv.write(str(fft) + " ")  # for debug
-                        self.f_hea1_csv.write("\n")  # for debug
+                    self.bluetooth_server.write_data_only_to_storage(fft_signal_out, 'hea1')
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"], dt_stlp, "calculate_fft_signal_out")
+#                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "sgp_hre_prctim", dt_stlp, "calculate_fft_signal_out")
 
                     fft_signal_out_dB = 20*np.log10(fft_signal_out)  # As of May 7, lenght of vector is 600
 
-                    if not self.f_hea2_csv.closed:  # for debug
-                        for fft_dB in fft_signal_out_dB:  # for debug
-                            self.f_hea2_csv.write(str(fft_dB) + " ")  # for debug
-                        self.f_hea2_csv.write("\n")  # for debug
+                    self.bluetooth_server.write_data_only_to_storage(fft_signal_out_dB, 'hea2')
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"], dt_tmp, "calculate_fft_signal_out_dB")
+#                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "sgp_hre_prctim", dt_tmp, "calculate_fft_signal_out_dB")
 
                     self.FFT_old_values[index_in_FFT_old_values][:] = fft_signal_out_dB
 
@@ -219,32 +171,24 @@ class SignalProcessing:
                     # fft movemean
                     FFT_averaged = self.mean_of_old_values(FFT_counter)
 
-                    if not self.f_hea3_csv.closed:  # for debug
-                        for fft_avgd in FFT_averaged:  # for debug
-                            self.f_hea3_csv.write(str(fft_avgd) + " ")  # for debug
-                        self.f_hea3_csv.write("\n")  # for debug
+                    self.bluetooth_server.write_data_only_to_storage(FFT_averaged, 'hea3')
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"], dt_tmp, "calculate_FFT_averaged")
+#                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "sgp_hre_prctim", dt_tmp, "calculate_FFT_averaged")
 
                     #print("Length of averaged FFT: ", len(FFT_averaged))
                     # Returns the peaks in set inteval from averaged FFT
                     peak_freq, peak_amplitude = self.findPeaks(FFT_averaged)
 
-                    if not self.f_hea4_csv.closed:
-                        for peak_f in peak_freq:
-                            self.f_hea4_csv.write(str(peak_f) + " ")
-                        self.f_hea4_csv.write("\n")
+                    self.bluetooth_server.write_data_only_to_storage(peak_freq, 'hea4')
 
-                    if not self.f_hea5_csv.closed:
-                        for peak_a in peak_amplitude:
-                            self.f_hea5_csv.write(str(peak_a) + " ")
-                        self.f_hea5_csv.write("\n")
+                    self.bluetooth_server.write_data_only_to_storage(peak_amplitude, 'hea5')
 
-                    if not self.f_hea6_csv.closed:
-                        self.f_hea6_csv.write(str(FFT_counter) + "," + \
-                                              str(index_in_FFT_old_values) + ",")
+                    data_to_write_in_hea6 += str(FFT_counter) + "," + \
+                                             str(index_in_FFT_old_values) + ","
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"], dt_tmp, "calculate_peak_f_a")
+#                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "sgp_hre_prctim", dt_tmp, "calculate_peak_f_a")
 
 #                     if len(peak_freq) > 0 and np.amin(peak_amplitude) > -40 and np.amax(peak_amplitude) > -30 and time.time() - start_time > 50:
                     if len(peak_freq) > 0 and np.amin(peak_amplitude) > -45 and np.amax(peak_amplitude) > -35 and time.time() - start_time > 50:
@@ -259,6 +203,9 @@ class SignalProcessing:
                         close_peaks = []
                         close_disturbing_peaks = []
                         try:
+
+                            multiplication_factor_lst = []
+
                             for i in range(0, len(peak_freq)):  # Weight the peaks found depending on their amplitude,
                                 if peak_freq[i] < 0.9:
                                     multiplication_factor = 5  # to lower the noise peak under 0.9 Hz
@@ -267,11 +214,7 @@ class SignalProcessing:
                                 else:
                                     multiplication_factor = 10
 
-                                if not self.f_hea7_csv.closed:
-                                    if i == len(peak_freq) - 1:
-                                        self.f_hea7_csv.write(str(multiplication_factor))
-                                    else:
-                                        self.f_hea7_csv.write(str(multiplication_factor) + ",")
+                                multiplication_factor_lst.append(multiplication_factor)
 
                                 # distance to the last tracked peak, and on the frequency (the noise is kind of 1/f, so to to fix that multiply with f)
                                 self.peak_weighted.append(peak_amplitude[i] + multiplication_factor * np.exp(
@@ -289,35 +232,21 @@ class SignalProcessing:
                                     # If there is a lot of peaks to disturb the measurement
                                     close_disturbing_peaks.append(peak_freq[i])
 
-                            if not self.f_hea8_csv.closed:
-                                for i, pw in enumerate(self.peak_weighted):
-                                    if i == len(self.peak_weighted) - 1:
-                                        self.f_hea8_csv.write(str(pw))
-                                    else:
-                                        self.f_hea8_csv.write(str(pw) + ",")
+                            self.bluetooth_server.write_data_only_to_storage(multiplication_factor_lst, 'hea7')
 
-                            if not self.f_hea9_csv.closed:
-                                for i, cp in enumerate(close_peaks):
-                                    if i == len(close_peaks) - 1:
-                                        self.f_hea9_csv.write(str(cp))
-                                    else:
-                                        self.f_hea9_csv.write(str(cp) + ",")
+                            self.bluetooth_server.write_data_only_to_storage(self.peak_weighted, 'hea8')
 
-                            if not self.f_hea10_csv.closed:
-                                for i, cdp in enumerate(close_disturbing_peaks):
-                                    if i == len(close_disturbing_peaks) - 1:
-                                        self.f_hea10_csv.write(str(cdp))
-                                    else:
-                                        self.f_hea10_csv.write(str(cdp) + ",")
+                            self.bluetooth_server.write_data_only_to_storage(close_peaks, 'hea9')
+
+                            self.bluetooth_server.write_data_only_to_storage(close_disturbing_peaks, 'hea10')
 
                             found_peak_index = np.argmax(np.array(self.peak_weighted))
                             found_heart_freq = peak_freq[found_peak_index]
                             found_heart_freq_amplitude_old = self.peak_amplitude[found_peak_index]
 
-                            if not self.f_hea6_csv.closed:
-                                self.f_hea6_csv.write(str(found_peak_index) + "," + \
-                                                    str(found_heart_freq) + "," + \
-                                                    str(found_heart_freq_amplitude_old) + ",")
+                            data_to_write_in_hea6 += str(found_peak_index) + "," + \
+                                                     str(found_heart_freq) + "," + \
+                                                     str(found_heart_freq_amplitude_old) + ","
 
                             # Determine the reliability of the found peak, if it's really the heart rate or just noise.
                             # Compares to the next largest peak amplitude
@@ -327,8 +256,7 @@ class SignalProcessing:
                             except:
                                 next_largest_peak_amplitude = -35
 
-                            if not self.f_hea6_csv.closed:
-                                self.f_hea6_csv.write(str(next_largest_peak_amplitude) + ",")
+                            data_to_write_in_hea6 += str(next_largest_peak_amplitude) + ","
 
                             if found_heart_freq_amplitude_old - next_largest_peak_amplitude > 12:
                                 found_peak_reliability = "ExceptionalHigh"
@@ -364,12 +292,7 @@ class SignalProcessing:
                             if len(old_heart_freq_list) > upl_of_old_heart_freq_list:
                                 old_heart_freq_list.pop(0)
 
-                            if not self.f_hea11_csv.closed:
-                                for i, ohf in enumerate(old_heart_freq_list):
-                                    if i == len(old_heart_freq_list) - 1:
-                                        self.f_hea11_csv.write(str(ohf))
-                                    else:
-                                        self.f_hea11_csv.write(str(ohf) + ",")
+                            self.bluetooth_server.write_data_only_to_storage(old_heart_freq_list, 'hea11')
 
 #                             if np.abs(np.mean(old_heart_freq_list[
 #                                               0:-2]) - found_heart_freq) > 0.1:  # too big change, probably noise or other disruptions
@@ -395,11 +318,7 @@ class SignalProcessing:
                         found_peak_reliability = "VeryLow"
                         found_peak_reliability_int = 1
 
-                        if not self.f_hea6_csv.closed:
-                            self.f_hea6_csv.write("," + \
-                                                str(found_heart_freq) + "," + \
-                                                ",")
-                            self.f_hea6_csv.write(",")
+                        data_to_write_in_hea6 += "," + str(found_heart_freq) + ",,,"
 
                     else:
                         #found_heart_freq = found_heart_freq_old
@@ -408,14 +327,9 @@ class SignalProcessing:
                         found_peak_reliability = "None"
                         found_peak_reliability_int = 0
 
-                        if not self.f_hea6_csv.closed:
-                            self.f_hea6_csv.write("," + \
-                                                str(found_heart_freq) + "," + \
-                                                ",")
-                            self.f_hea6_csv.write(",")
+                        data_to_write_in_hea6 += "," + str(found_heart_freq) + ",,,"
 
-                    if not self.f_hea6_csv.closed:
-                        self.f_hea6_csv.write(str(found_heart_freq) + ",")
+                    data_to_write_in_hea6 += str(found_heart_freq) + ","
 
                     if not measurement_data_stable_state:
                         if len(old_heart_freq_list) >= upl_of_old_heart_freq_list and found_heart_freq >= 50/60 and found_heart_freq < 100/60:
@@ -438,21 +352,9 @@ class SignalProcessing:
                         found_heart_rate = 0
                         found_peak_reliability = "None"
                         found_peak_reliability_int = 0
-#                         self.bluetooth_server.write_data_to_app(
-#                             str(found_heart_rate) + ' ' + found_peak_reliability, 'heart rate')   # Send to app
 
-                    if not self.f_hea6_csv.closed:
-                        self.f_hea6_csv.write(str(found_heart_rate) + "\n")
-                    if not self.f_hea7_csv.closed:
-                        self.f_hea7_csv.write("\n")
-                    if not self.f_hea8_csv.closed:
-                        self.f_hea8_csv.write("\n")
-                    if not self.f_hea9_csv.closed:
-                        self.f_hea9_csv.write("\n")
-                    if not self.f_hea10_csv.closed:
-                        self.f_hea10_csv.write("\n")
-                    if not self.f_hea11_csv.closed:
-                        self.f_hea11_csv.write("\n")
+                    data_to_write_in_hea6 += str(found_heart_rate)
+                    self.bluetooth_server.write_data_only_to_storage(data_to_write_in_hea6, 'hea6')
 
                     # BPM_search = self.freq * 60 # Used where?
                     # print("past plot heart rate")
@@ -497,6 +399,7 @@ class SignalProcessing:
                         # os.system("echo 'power off\nquit' | bluetoothctl")
 
                     sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"], dt_stlp, "heart_rate()_while_loop_time")
+#                     sv.clc_elpsd_tim(self.bluetooth_server, "sgp_hre_prctim_csv", dt_stlp, "heart_rate()_while_loop_time")
 
         print("Out of pulse")
 
@@ -532,6 +435,7 @@ class SignalProcessing:
                 self.index_fft = 0
 
         sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"], dt_stlp, "get_HR_filtered_queue")
+#         sv.clc_elpsd_tim(self.bluetooth_server, "sgp_hre_prctim", dt_stlp, "get_HR_filtered_queue")
 
         # TODO: Check if necessary. # roll the matrix so that the last inserted value is to the right.
         self.fft_window = np.roll(self.fft_window, -(self.index_fft+1))
@@ -540,6 +444,7 @@ class SignalProcessing:
         self.fft_window = np.roll(self.fft_window, (self.index_fft+1))
 
         sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"], dt_stlp, "windowedFFT()")
+#         sv.clc_elpsd_tim(self.bluetooth_server, "sgp_hre_prctim", dt_stlp, "windowedFFT()")
 
         return fft_signal_out
 
@@ -637,23 +542,15 @@ class SignalProcessing:
                     if val >= 0 and pval < 0:
                         movavgHRdata.append(pval)
                         movavgHRdata.append(val)
-                        dt_now = sv.list_of_variables_for_threads["current_date_time"]
-                        dt_now_ = str(dt_now).replace(' ', ',')
-                        self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
-                        if not self.f_bpint_csv.closed:
-                            self.f_bpint_csv.write(str(dt_now_) + ',' + str(movavgHRdata[-2]) + ',,,,,,\n')
-                            self.f_bpint_csv.write(str(dt_now_) + ',' + str(movavgHRdata[-1]) + ',,,,,,\n')
+                        self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-2]) + ',,,,,,', 'bpint')
+                        self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-1]) + ',,,,,,', 'bpint')
                         break
 
 #             while self.go:
                 while True:
                     val = self.HR_filtered_queue_movavg.get()
                     movavgHRdata.append(val)
-                    dt_now = sv.list_of_variables_for_threads["current_date_time"]
-                    dt_now_ = str(dt_now).replace(' ', ',')
-                    self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
-                    if not self.f_bpint_csv.closed:
-                        self.f_bpint_csv.write(str(dt_now_) + ',' + str(movavgHRdata[-1]) + ',,,,,,\n')
+                    self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-1]) + ',,,,,,', 'bpint')
 
                     if movavgHRdata[-2] >= 0 and movavgHRdata[-1] < 0:
                         idx0 = len(movavgHRdata)
@@ -695,13 +592,10 @@ class SignalProcessing:
                         self.bluetooth_server.write_data_to_app(
                             str(sbp) + ' ' + str(mbp) + ' ' + str(dbp) + ' ' \
                             + str(sbp_movavg) + ' ' + str(mbp_movavg) + ' ' + str(dbp_movavg), 'blood pressure')  # Send to app
-                        dt_now = sv.list_of_variables_for_threads["current_date_time"]
-                        dt_now_ = str(dt_now).replace(' ', ',')
-                        self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
-                        if not self.f_bpint_csv.closed:
-                            self.f_bpint_csv.write(str(dt_now_) + ',' + str(movavgHRdata[-1]) + ',' \
-                                                + str(idxpeak0) + ',' + str(idxbottom) + ',' + str(idxpeak1) + ',' \
-                                                + str(sbp) + ',' + str(mbp) + ',' + str(dbp) + '\n')
+                        self.bluetooth_server.write_data_only_to_storage(
+                            str(movavgHRdata[-1]) + ',' \
+                            + str(idxpeak0) + ',' + str(idxbottom) + ',' + str(idxpeak1) + ',' \
+                            + str(sbp) + ',' + str(mbp) + ',' + str(dbp), 'bpint')
                         state = 0
                         del movavgHRdata[0 : idx1 - 2]
                         idx0 = len(movavgHRdata) - 1
@@ -712,16 +606,14 @@ class SignalProcessing:
                     val = self.HR_filtered_queue_movavg.get()
 
                     sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_bpe_prctim_csv"], dt_tmp, "get_HR_filtered_queue_movavg")
+#                     sv.clc_elpsd_tim(self.bluetooth_server, "sgp_bpe_prctim", dt_tmp, "get_HR_filtered_queue_movavg")
 
                     movavgHRdata.append(val)
-                    dt_now = sv.list_of_variables_for_threads["current_date_time"]
-                    dt_now_ = str(dt_now).replace(' ', ',')
                     if not (state == 1 and movavgHRdata[-2] >= 0 and movavgHRdata[-1] < 0):
-                        self.f_bpint_csv =  sv.list_of_variables_for_threads["f_bpint_csv"]
-                        if not self.f_bpint_csv.closed:
-                            self.f_bpint_csv.write(str(dt_now_) + ',' + str(movavgHRdata[-1]) + ',,,,,,\n')
+                        self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-1]) + ',,,,,,', 'bpint')
 
                     sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_bpe_prctim_csv"], dt_stlp, "blood_pressure()_while_loop_time")
+#                     sv.clc_elpsd_tim(self.bluetooth_server, "sgp_bpe_prctim", dt_stlp, "blood_pressure()_while_loop_time")
 
         print("out of blood_pressure")
 
@@ -761,11 +653,7 @@ class SignalProcessing:
 
                     dt_stlp = datetime.datetime.now()
 
-                    self.f_sch_csv =  sv.list_of_variables_for_threads["f_sch_csv"]
-
-                    dt_now = sv.list_of_variables_for_threads["current_date_time"]
-                    if not self.f_sch_csv.closed:
-                        self.f_sch_csv.write(str(dt_now) + ' ')
+                    data_to_write_in_sch = ""
 
 
                     # to be able to use the same value in the whole loop
@@ -787,9 +675,9 @@ class SignalProcessing:
                     trackedRRvector[countHys - 1] = self.RR_filtered_queue.get()
 
                     sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"], dt_tmp, "get_RR_filtered_queue")
+#                     sv.clc_elpsd_tim(self.bluetooth_server, "sgp_rre_prctim", dt_tmp, "get_RR_filtered_queue")
 
-                    if not self.f_sch_csv.closed:
-                        self.f_sch_csv.write(str(countHys) + " " + str(trackedRRvector[countHys - 1]) + " ")
+                    data_to_write_in_sch += str(countHys) + " " + str(trackedRRvector[countHys - 1]) + " "
 
                     #print("Amplitude for respitory rate {}".format(trackedRRvector[countHys-1]))
                     # self.RTB_final_queue.put(trackedRRvector[countHys - 1])
@@ -806,8 +694,7 @@ class SignalProcessing:
                         # TODO Hinder så att insvängningstiden för filtret hanteras
                         countHys = 0
 
-                    if not self.f_sch_csv.closed:
-                        self.f_sch_csv.write(str(Hcut) + " " + str(Lcut) + " ")
+                    data_to_write_in_sch += str(Hcut) + " " + str(Lcut) + " "
 
                     # schNy = schGa   behövs inte. Görs nedan
 
@@ -852,12 +739,12 @@ class SignalProcessing:
                     elif trackedRRvector[countHys - 1] >= Hcut:
                         schNy = 1
 
-                    if not self.f_sch_csv.closed:
-                        for freq in freqArray:
-                            self.f_sch_csv.write(str(freq) + " ")
+                    for freq in freqArray:
+                        data_to_write_in_sch += str(freq) + " "
 
-                        self.f_sch_csv.write(str(FHighRR) + " " + str(FLowRR) + " " + str(respiratory_rate_data) + " " + \
-                                            str(schNy) + " " + str(schGa) + " " + str(count) + "\n")
+                    data_to_write_in_sch += str(FHighRR) + " " + str(FLowRR) + " " + str(respiratory_rate_data) + " " + \
+                                            str(schNy) + " " + str(schGa) + " " + str(count)
+                    self.bluetooth_server.write_data_only_to_storage(data_to_write_in_sch, 'sch')
 
                     schGa = schNy
                     count += 1
@@ -867,6 +754,7 @@ class SignalProcessing:
                     # print("Tid genom schmittTrigger: ", end-start)
 
                     sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"], dt_stlp, "schmittTrigger()_while_loop_time")
+#                     sv.clc_elpsd_tim(self.bluetooth_server, "sgp_rre_prctim", dt_stlp, "schmittTrigger()_while_loop_time")
 
         print("out of schmittTrigger")
 

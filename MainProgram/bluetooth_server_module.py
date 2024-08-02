@@ -11,6 +11,7 @@ import os
 import datetime
 
 import shared_variables as sv
+import pandas as pd
 
 
 class BluetoothServer:
@@ -57,10 +58,6 @@ class BluetoothServer:
             target=self.connect_device)  # Starts thread which accepts new devices
         self.connect_device_thread.start()
 
-        self.f_hr_csv  = sv.list_of_variables_for_threads["f_hr_csv"]
-        self.f_rr_csv  = sv.list_of_variables_for_threads["f_rr_csv"]
-        self.f_rtb_csv = sv.list_of_variables_for_threads["f_rtb_csv"]
-        self.f_bp_csv = sv.list_of_variables_for_threads["f_bp_csv"]
         self.measurement_start_time = sv.list_of_variables_for_threads["measurement_start_time"]
 
         self.filename_rec_csv = ''
@@ -178,44 +175,35 @@ class BluetoothServer:
                         sv.list_of_variables_for_threads["is_measuring"] = self.is_measuring
 
                         # CSVファイルクローズ処理
-                        self.f_hr_csv.close()
-                        self.f_rr_csv.close()
-                        self.f_rtb_csv.close()
-                        self.f_raw_csv.close()
-                        self.f_sch_csv.close()
-                        self.f_hea1_csv.close()  # for debug
-                        self.f_hea2_csv.close()  # for debug
-                        self.f_hea3_csv.close()  # for debug
-                        self.f_hea4_csv.close()
-                        self.f_hea5_csv.close()
-                        self.f_hea6_csv.close()
-                        self.f_hea7_csv.close()
-                        self.f_hea8_csv.close()
-                        self.f_hea9_csv.close()
-                        self.f_hea10_csv.close()
-                        self.f_hea11_csv.close()
+                        self.df_hr.to_csv(filepath + date_time + '/log_hr_' + date_time + '.csv', index=False)  # CSV file for heart rate
+                        self.df_rr.to_csv(filepath + date_time + '/log_rr_' + date_time + '.csv', index=False)  # CSV file for respiration rate
+                        self.df_rtb.to_csv(filepath + date_time + '/log_rtb_' + date_time + '.csv', index=False)  # CSV file for real time breath
+                        self.df_raw.to_csv(filepath + date_time + '/log_raw_' + date_time + '.csv', index=False)  # CSV file for tracked data
+                        self.df_sch.to_csv(filepath + date_time + '/log_sch_' + date_time + '.csv', index=False)  # CSV file for schmittTrigger() internal data
+                        self.df_hea1.to_csv(filepath + date_time + '/log_hea1_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (fft_signal_out)  # for debug
+                        self.df_hea2.to_csv(filepath + date_time + '/log_hea2_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (fft_signal_out_dB)  # for debug
+                        self.df_hea3.to_csv(filepath + date_time + '/log_hea3_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (FFT_averaged)  # for debug
+                        self.df_hea4.to_csv(filepath + date_time + '/log_hea4_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (peak_freq)
+                        self.df_hea5.to_csv(filepath + date_time + '/log_hea5_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (peak_amplitude)
+                        self.df_hea6.to_csv(filepath + date_time + '/log_hea6_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (found_peak_index)
+                        self.df_hea7.to_csv(filepath + date_time + '/log_hea7_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (multiplication_factor)
+                        self.df_hea8.to_csv(filepath + date_time + '/log_hea8_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (peak_weighted)
+                        self.df_hea9.to_csv(filepath + date_time + '/log_hea9_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (close_peaks)
+                        self.df_hea10.to_csv(filepath + date_time + '/log_hea10_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (close_disturbing_peaks)
+                        self.df_hea11.to_csv(filepath + date_time + '/log_hea11_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (old_heart_freq_list)  # for debug
+                        self.df_bp.to_csv(filepath + date_time + '/log_bp_' + date_time + '.csv', index=False)  # CSV file for blood pressure
+                        self.df_bpint.to_csv(filepath + date_time + '/log_bpint_' + date_time + '.csv', index=False)  # CSV file for blood_pressure() internal data
                         self.f_daq_run_prctim_csv.close()
+#                         self.df_daq_run_prctim.to_csv(filepath + date_time + '/log_daq_run_prctim_' + date_time + '.csv', index=False)  # CSV file for recording processing time of run()@data_acquisition_module.py
                         self.f_sgp_hre_prctim_csv.close()
+#                         self.df_sgp_hre_prctim.to_csv(filepath + date_time + '/log_sgp_hre_prctim_' + date_time + '.csv', index=False)  # CSV file for recording processing time of heart_rate()@signal_processing_module.py
                         self.f_sgp_rre_prctim_csv.close()
+#                         self.df_sgp_rre_prctim.to_csv(filepath + date_time + '/log_sgp_rre_prctim_' + date_time + '.csv', index=False)  # CSV file for recording processing time of schmittTrigger()@signal_processing_module.py
                         self.f_sgp_bpe_prctim_csv.close()
+#                         self.df_sgp_bpe_prctim.to_csv(filepath + date_time + '/log_sgp_bpe_prctim_' + date_time + '.csv', index=False)  # CSV file for recording processing time of blood_pressure()@signal_processing_module.py
                         self.f_info_csv.close()
+#                         self.df_info.to_csv(filepath + date_time + '/log_info_' + date_time + '.csv', index=False)  # CSV file for recording "info" variable value of get_data()@data_acquisition_module.py
 
-                        print(filename_hr_csv + " is closed")
-                        print(filename_rr_csv + " is closed")
-                        print(filename_rtb_csv + " is closed")
-                        print(filename_raw_csv + " is closed")
-                        print(filename_sch_csv + " is closed")
-                        print(filename_hea1_csv + " is closed")  # for debug
-                        print(filename_hea2_csv + " is closed")  # for debug
-                        print(filename_hea3_csv + " is closed")  # for debug
-                        print(filename_hea4_csv + " is closed")
-                        print(filename_hea5_csv + " is closed")
-                        print(filename_hea6_csv + " is closed")
-                        print(filename_hea7_csv + " is closed")
-                        print(filename_hea8_csv + " is closed")
-                        print(filename_hea9_csv + " is closed")
-                        print(filename_hea10_csv + " is closed")
-                        print(filename_hea11_csv + " is closed")
                         print(filename_daq_run_prctim_csv + " is closed")
                         print(filename_sgp_hre_prctim_csv + " is closed")
                         print(filename_sgp_rre_prctim_csv + " is closed")
@@ -325,105 +313,64 @@ class BluetoothServer:
 
                     self.user_serial_number = data[13:]
 
-                    # CSVファイルオープン処理
+                    # データフレーム作成処理
                     # Get current time
                     timestamp = datetime.datetime.now()
 
                     date_time = timestamp.strftime('%Y%m%d_%H%M%S')
                     if not os.path.exists(filepath + date_time):
                         os.mkdir(filepath + date_time)
-                    filename_hr_csv    = filepath + date_time + '/log_hr_'    + date_time + '.csv'  # CSV file for heart rate
-                    filename_rr_csv    = filepath + date_time + '/log_rr_'    + date_time + '.csv'  # CSV file for respiration rate
-                    filename_rtb_csv   = filepath + date_time + '/log_rtb_'   + date_time + '.csv'  # CSV file for real time breath
-                    filename_raw_csv   = filepath + date_time + '/log_raw_'   + date_time + '.csv'  # CSV file for tracked data
-                    filename_sch_csv   = filepath + date_time + '/log_sch_'   + date_time + '.csv'  # CSV file for schmittTrigger() internal data
-                    filename_hea1_csv  = filepath + date_time + '/log_hea1_'  + date_time + '.csv'  # CSV file for heart_rate() internal data (fft_signal_out)  # for debug
-                    filename_hea2_csv  = filepath + date_time + '/log_hea2_'  + date_time + '.csv'  # CSV file for heart_rate() internal data (fft_signal_out_dB)  # for debug
-                    filename_hea3_csv  = filepath + date_time + '/log_hea3_'  + date_time + '.csv'  # CSV file for heart_rate() internal data (FFT_averaged)  # for debug
-                    filename_hea4_csv  = filepath + date_time + '/log_hea4_'  + date_time + '.csv'  # CSV file for heart_rate() internal data (peak_freq)
-                    filename_hea5_csv  = filepath + date_time + '/log_hea5_'  + date_time + '.csv'  # CSV file for heart_rate() internal data (peak_amplitude)
-                    filename_hea6_csv  = filepath + date_time + '/log_hea6_'  + date_time + '.csv'  # CSV file for heart_rate() internal data (found_peak_index)
-                    filename_hea7_csv  = filepath + date_time + '/log_hea7_'  + date_time + '.csv'  # CSV file for heart_rate() internal data (multiplication_factor)
-                    filename_hea8_csv  = filepath + date_time + '/log_hea8_'  + date_time + '.csv'  # CSV file for heart_rate() internal data (peak_weighted)
-                    filename_hea9_csv  = filepath + date_time + '/log_hea9_'  + date_time + '.csv'  # CSV file for heart_rate() internal data (close_peaks)
-                    filename_hea10_csv = filepath + date_time + '/log_hea10_' + date_time + '.csv'  # CSV file for heart_rate() internal data (close_disturbing_peaks)
-                    filename_hea11_csv = filepath + date_time + '/log_hea11_' + date_time + '.csv'  # CSV file for heart_rate () internal data (old_heart_freq_list)
-                    filename_bp_csv    = filepath + date_time + '/log_bp_'    + date_time + '.csv'  # CSV file for blood pressure
-                    filename_bpint_csv = filepath + date_time + '/log_bpint_' + date_time + '.csv'  # CSV file for blood_pressure() internal data
                     filename_daq_run_prctim_csv = filepath + date_time + '/log_daq_run_prctim_' + date_time + '.csv'  # CSV file for recording processing time of run()@data_acquisition_module.py
                     filename_sgp_hre_prctim_csv = filepath + date_time + '/log_sgp_hre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of heart_rate()@signal_processing_module.py
                     filename_sgp_rre_prctim_csv = filepath + date_time + '/log_sgp_rre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of schmittTrigger()@signal_processing_module.py
                     filename_sgp_bpe_prctim_csv = filepath + date_time + '/log_sgp_bpe_prctim_' + date_time + '.csv'  # CSV file for recording processing time of blood_pressure()@signal_processing_module.py
                     filename_info_csv = filepath + date_time + '/log_info_' + date_time + '.csv'  # CSV file for recording "info" variable value of get_data()@data_acquisition_module.py
 
-                    self.f_hr_csv    = open(filename_hr_csv,    'w')
-                    self.f_rr_csv    = open(filename_rr_csv,    'w')
-                    self.f_rtb_csv   = open(filename_rtb_csv,   'w')
-                    self.f_raw_csv   = open(filename_raw_csv,   'w')
-                    self.f_sch_csv   = open(filename_sch_csv,   'w')
-                    self.f_hea1_csv  = open(filename_hea1_csv,  'w')  # for debug
-                    self.f_hea2_csv  = open(filename_hea2_csv,  'w')  # for debug
-                    self.f_hea3_csv  = open(filename_hea3_csv,  'w')  # for debug
-                    self.f_hea4_csv  = open(filename_hea4_csv,  'w')
-                    self.f_hea5_csv  = open(filename_hea5_csv,  'w')
-                    self.f_hea6_csv  = open(filename_hea6_csv,  'w')
-                    self.f_hea7_csv  = open(filename_hea7_csv,  'w')
-                    self.f_hea8_csv  = open(filename_hea8_csv,  'w')
-                    self.f_hea9_csv  = open(filename_hea9_csv,  'w')
-                    self.f_hea10_csv = open(filename_hea10_csv, 'w')
-                    self.f_hea11_csv = open(filename_hea11_csv, 'w')
-                    self.f_bp_csv    = open(filename_bp_csv,    'w')
-                    self.f_bpint_csv = open(filename_bpint_csv, 'w')
+                    self.df_hr = pd.DataFrame(columns=["date", "time", "heart_rate", "reliability"])
+                    self.df_rr = pd.DataFrame(columns=["date", "time", "respiration_rate"])
+                    self.df_rtb = pd.DataFrame(columns=["date", "time", "real_time_breath"])
+                    self.df_raw = pd.DataFrame(columns=["date", "time", "relative_distance", "bandpass_filtered_data_HR", "bandpass_filtered_data_HR_mvavg", "bandpass_filtered_data_RR"])
+                    self.df_sch = pd.DataFrame(columns=["date", "time", "countHys", "trackedRRvector[countHys-1]", "Hcut", "Lcut", \
+                                                        "freqArray[0]", "freqArray[1]", "freqArray[2]", "freqArray[3]", "freqArray[4]", "freqArray[5]", "freqArray[6]", "freqArray[7]", \
+                                                        "FHighRR", "FLowRR", "respiratory_rate_data", "schNy", "schGa", "count"])
+                    columns_lst_for_hea1 = ["date", "time"]
+                    for i in range(600):
+                        columns_lst_for_hea1.append("fft_signal_out[" + str(i) + "]")
+                    self.df_hea1 = pd.DataFrame(columns=columns_lst_for_hea1)
+                    columns_lst_for_hea2 = ["date", "time"]
+                    for i in range(600):
+                        columns_lst_for_hea2.append("fft_signal_out_dB[" + str(i) + "]")
+                    self.df_hea2 = pd.DataFrame(columns=columns_lst_for_hea2)
+                    columns_lst_for_hea3 = ["date", "time"]
+                    for i in range(600):
+                        columns_lst_for_hea3.append("FFT_averaged[" + str(i) + "]")
+                    self.df_hea3 = pd.DataFrame(columns=columns_lst_for_hea3)
+                    self.df_hea4 = pd.DataFrame(columns=["date", "time"])
+                    self.df_hea5 = pd.DataFrame(columns=["date", "time"])
+                    self.df_hea6 = pd.DataFrame(columns=["date", "time", "FFT_counter", "index_in_FFT_old_values", "found_peak_index", \
+                                                         "found_heart_freq", "found_heart_freq_amplitude_old", "next_largest_peak_amplitude", \
+                                                         "found_heart_freq2", "found_heart_rate"])
+                    self.df_hea7 = pd.DataFrame(columns=["date", "time"])
+                    self.df_hea8 = pd.DataFrame(columns=["date", "time"])
+                    self.df_hea9 = pd.DataFrame(columns=["date", "time"])
+                    self.df_hea10 = pd.DataFrame(columns=["date", "time"])
+                    columns_lst_for_hea11 = ["date", "time"]
+                    for i in range(20):
+                        columns_lst_for_hea11.append("old_heart_freq_list[" + str(i) + "]")
+                    self.df_hea11 = pd.DataFrame(columns=columns_lst_for_hea11)
+                    self.df_bp = pd.DataFrame(columns=["date", "time", "SBP", "MBP", "DBP", "SBP_movavg", "MBP_movavg", "DBP_movavg"])
+                    self.df_bpint = pd.DataFrame(columns=["date", "time", "movavgHRdata", "idxpeak0", "idxbottom", "idxpea1", "SBP", "MBP", "DBP"])
                     self.f_daq_run_prctim_csv = open(filename_daq_run_prctim_csv, 'w')
+#                     self.df_daq_run_prctim = pd.DataFrame(columns=["date", "time", "processing_time[ms]", "remark"])
                     self.f_sgp_hre_prctim_csv = open(filename_sgp_hre_prctim_csv, 'w')
+#                     self.df_sgp_hre_prctim = pd.DataFrame(columns=["date", "time", "processing_time[ms]", "remark"])
                     self.f_sgp_rre_prctim_csv = open(filename_sgp_rre_prctim_csv, 'w')
+#                     self.df_sgp_rre_prctim = pd.DataFrame(columns=["date", "time", "processing_time[ms]", "remark"])
                     self.f_sgp_bpe_prctim_csv = open(filename_sgp_bpe_prctim_csv, 'w')
+#                     self.df_sgp_bpe_prctim = pd.DataFrame(columns=["date", "time", "processing_time[ms]", "remark"])
                     self.f_info_csv = open(filename_info_csv, 'w')
+#                     self.df_info = pd.DataFrame(columns=["date", "time", "tick", "data_saturated", "missed_data", "data_quality_warning"])
 
-                    if not self.f_hr_csv.closed:
-                        self.f_hr_csv.write('date time heart_rate reliability\n')
-                    if not self.f_rr_csv.closed:
-                        self.f_rr_csv.write('date time respiration_rate\n')
-                    if not self.f_rtb_csv.closed:
-                        self.f_rtb_csv.write('date time real_time_breath\n')
-                    if not self.f_raw_csv.closed:
-                        self.f_raw_csv.write('date time relative_distance bandpass_filtered_data_HR bandpass_filtered_data_HR_mvavg bandpass_filtered_data_RR\n')
-                    if not self.f_sch_csv.closed:
-                        self.f_sch_csv.write(
-                                            'date time countHys trackedRRvector[countHys-1] Hcut Lcut ' +
-                                            'freqArray[0] freqArray[1] freqArray[2] freqArray[3] freqArray[4] freqArray[5] freqArray[6] freqArray[7] ' +
-                                            'FHighRR FLowRR respiratory_rate_data schNy schGa count\n'
-                                            )
-                    if not self.f_hea1_csv.closed:  # for debug
-                        self.f_hea1_csv.write('date time fft_signal_out[0]\n')  # for debug
-                    if not self.f_hea2_csv.closed:  # for debug
-                        self.f_hea2_csv.write('date time fft_signal_out_dB[0]\n')  # for debug
-                    if not self.f_hea3_csv.closed:  # for debug
-                        self.f_hea3_csv.write('date time FFT_averaged[0]\n')  # for debug
-                    if not self.f_hea4_csv.closed:
-                        self.f_hea4_csv.write('date time peak_freq[0]\n')
-                    if not self.f_hea5_csv.closed:
-                        self.f_hea5_csv.write('date time peak_amplitude[0]\n')
-                    if not self.f_hea6_csv.closed:
-                        self.f_hea6_csv.write('date,time,' + \
-                                                 'FFT_counter,index_in_FFT_old_values,' + \
-                                                 'found_peak_index,found_heart_freq,found_heart_freq_amplitude_old,' + \
-                                                 'next_largest_peak_amplitude,' + \
-                                                 'found_heart_freq2,found_heart_rate\n')
-                    if not self.f_hea7_csv.closed:
-                        self.f_hea7_csv.write('date,time,multiplication_factor0\n')
-                    if not self.f_hea8_csv.closed:
-                        self.f_hea8_csv.write('date,time,peak_weighted[0]\n')
-                    if not self.f_hea9_csv.closed:
-                        self.f_hea9_csv.write('date,time,close_peaks[0]\n')
-                    if not self.f_hea10_csv.closed:
-                        self.f_hea10_csv.write('date,time,close_disturbing_peadks[0]\n')
-                    if not self.f_hea11_csv.closed:
-                        self.f_hea11_csv.write('date,time,old_heart_freq_list[0]\n')
-                    if not self.f_bp_csv.closed:
-                        self.f_bp_csv.write('date time SBP MBP DBP SBP_movavg MBP_movavg DBP_movavg\n')
-                    if not self.f_bpint_csv.closed:
-                        self.f_bpint_csv.write('date,time,movavgHRdata,idxpeak0,idxbottom,idxpea1,SBP,MBP,DBP\n')
                     if not self.f_daq_run_prctim_csv.closed:
                         self.f_daq_run_prctim_csv.write('date time processing_time[ms] remark\n')
                     if not self.f_sgp_hre_prctim_csv.closed:
@@ -435,24 +382,6 @@ class BluetoothServer:
                     if not self.f_info_csv.closed:
                         self.f_info_csv.write('date time tick data_saturated missed_data data_quality_warning\n')
 
-                    sv.list_of_variables_for_threads["f_hr_csv"]    = self.f_hr_csv
-                    sv.list_of_variables_for_threads["f_rr_csv"]    = self.f_rr_csv
-                    sv.list_of_variables_for_threads["f_rtb_csv"]   = self.f_rtb_csv
-                    sv.list_of_variables_for_threads["f_raw_csv"]   = self.f_raw_csv
-                    sv.list_of_variables_for_threads["f_sch_csv"]   = self.f_sch_csv
-                    sv.list_of_variables_for_threads["f_hea1_csv"]  = self.f_hea1_csv  # for debug
-                    sv.list_of_variables_for_threads["f_hea2_csv"]  = self.f_hea2_csv  # for debug
-                    sv.list_of_variables_for_threads["f_hea3_csv"]  = self.f_hea3_csv  # for debug
-                    sv.list_of_variables_for_threads["f_hea4_csv"]  = self.f_hea4_csv
-                    sv.list_of_variables_for_threads["f_hea5_csv"]  = self.f_hea5_csv
-                    sv.list_of_variables_for_threads["f_hea6_csv"]  = self.f_hea6_csv
-                    sv.list_of_variables_for_threads["f_hea7_csv"]  = self.f_hea7_csv
-                    sv.list_of_variables_for_threads["f_hea8_csv"]  = self.f_hea8_csv
-                    sv.list_of_variables_for_threads["f_hea9_csv"]  = self.f_hea9_csv
-                    sv.list_of_variables_for_threads["f_hea10_csv"] = self.f_hea10_csv
-                    sv.list_of_variables_for_threads["f_hea11_csv"] = self.f_hea11_csv
-                    sv.list_of_variables_for_threads["f_bpint_csv"] = self.f_bpint_csv
-                    sv.list_of_variables_for_threads["f_bp_csv"]    = self.f_bp_csv
                     sv.list_of_variables_for_threads["f_daq_run_prctim_csv"] = self.f_daq_run_prctim_csv
                     sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"] = self.f_sgp_hre_prctim_csv
                     sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"] = self.f_sgp_rre_prctim_csv
@@ -510,23 +439,49 @@ class BluetoothServer:
             # print(string)
             self.send_data(string)
 
-            if not self.f_hr_csv.closed:
-                self.f_hr_csv.write(str(dt_now) + ' ' + str(data) + '\n')
+#             if not self.f_hr_csv.closed:
+#                 self.f_hr_csv.write(str(dt_now) + ' ' + str(data) + '\n')
+            dt_now_lst = str(dt_now).split()
+            data_lst = data.split()
+            new_data = {
+                "date": [dt_now_lst[0]],
+                "time": [dt_now_lst[1]],
+                "heart_rate": [data_lst[0]],
+                "reliability": [data_lst[1]]
+            }
+            new_data_df = pd.DataFrame(new_data)
+            self.df_hr = pd.concat([self.df_hr, new_data_df], axis=0, ignore_index=True)
 
         elif data_type == 'breath rate':
             string = ' RR ' + str(data) + ' '
             # print(string)
             self.send_data(string)
 
-            if not self.f_rr_csv.closed:
-                self.f_rr_csv.write(str(dt_now) + ' ' + str(data) + '\n')
+#             if not self.f_rr_csv.closed:
+#                 self.f_rr_csv.write(str(dt_now) + ' ' + str(data) + '\n')
+            dt_now_lst = str(dt_now).split()
+            new_data = {
+                "date": [dt_now_lst[0]],
+                "time": [dt_now_lst[1]],
+                "respiration_rate": [data]
+            }
+            new_data_df = pd.DataFrame(new_data)
+            self.df_rr = pd.concat([self.df_rr, new_data_df], axis=0, ignore_index=True)
 
         elif data_type == 'real time breath':
             string = ' RTB ' + str(data) + ' '
             self.send_data(string)
 
-            if not self.f_rtb_csv.closed:
-                self.f_rtb_csv.write(str(dt_now) + ' ' + str(data) + '\n')
+#             if not self.f_rtb_csv.closed:
+#                 self.f_rtb_csv.write(str(dt_now) + ' ' + str(data) + '\n')
+            dt_now_lst = str(dt_now).split()
+            new_data = {
+                "date": [dt_now_lst[0]],
+                "time": [dt_now_lst[1]],
+                "real_time_breath": [data]
+            }
+            new_data_df = pd.DataFrame(new_data)
+            self.df_rtb = pd.concat([self.df_rtb, new_data_df], axis=0, ignore_index=True)
 
         elif data_type == 'blood pressure':
             data_ = data.split()
@@ -534,8 +489,182 @@ class BluetoothServer:
             string = ' BP ' + str(data__) + ' '
             self.send_data(string)
 
-            if not self.f_bp_csv.closed:
-                self.f_bp_csv.write(str(dt_now) + ' ' + str(data) + '\n')
+#             if not self.f_bp_csv.closed:
+#                 self.f_bp_csv.write(str(dt_now) + ' ' + str(data) + '\n')
+            dt_now_lst = str(dt_now).split()
+            new_data = {
+                "date": [dt_now_lst[0]],
+                "time": [dt_now_lst[1]],
+                "SBP": [data_[0]],
+                "MBP": [data_[1]],
+                "DBP": [data_[2]],
+                "SBP_movavg": [data_[3]],
+                "MBP_movavg": [data_[4]],
+                "DBP_movavg": [data_[5]]
+            }
+            new_data_df = pd.DataFrame(new_data)
+            self.df_bp = pd.concat([self.df_bp, new_data_df], axis=0, ignore_index=True)
+
+    def write_data_only_to_storage(self, data_to_write, data_type):
+        dt_now = sv.list_of_variables_for_threads["current_date_time"]
+        dt_now_lst = str(dt_now).split()
+
+        if data_type == 'raw':
+            data_lst = data_to_write.split()
+            new_data = {
+                "date": [dt_now_lst[0]],
+                "time": [dt_now_lst[1]],
+                "relative_distance": [data_lst[0]],
+                "bandpass_filtered_data_HR": [data_lst[1]],
+                "bandpass_filtered_data_HR_mvavg": [data_lst[2]],
+                "bandpass_filtered_data_RR": [data_lst[3]]
+            }
+            new_data_df = pd.DataFrame(new_data)
+            self.df_raw = pd.concat([self.df_raw, new_data_df], axis=0, ignore_index=True)
+
+        elif data_type == 'bpint':
+            data_lst = data_to_write.split(',')
+            new_data = {
+                "date": [dt_now_lst[0]],
+                "time": [dt_now_lst[1]],
+                "movavgHRdata": [data_lst[0]],
+                "idxpeak0": [data_lst[1]],
+                "idxbottom": [data_lst[2]],
+                "idxpea1": [data_lst[3]],
+                "SBP": [data_lst[4]],
+                "MBP": [data_lst[5]],
+                "DBP": [data_lst[6]]
+            }
+            new_data_df = pd.DataFrame(new_data)
+            self.df_bpint = pd.concat([self.df_bpint, new_data_df], axis=0, ignore_index=True)
+
+#         elif data_type == 'daq_run_prctim' or data_type == 'sgp_hre_prctim' or data_type == 'sbp_rre_prctim' or data_type == 'sgp_bpe_prctim':
+#             data_lst = data_to_write.split()
+#             new_data = {
+#                 "date": [data_lst[0]],
+#                 "time": [data_lst[1]],
+#                 "processing_time[ms]": [data_lst[2]],
+#                 "remark": [data_lst[3]]
+#             }
+#             new_data_df = pd.DataFrame(new_data)
+#             if data_type == 'daq_run_prctim':
+#                 self.df_daq_run_prctim = pd.concat([self.df_daq_run_prctim, new_data_df], axis=0, ignore_index=True)
+#             elif data_type == 'sgp_hre_prctim':
+#                 self.df_sgp_hre_prctim = pd.concat([self.df_sgp_hre_prctim, new_data_df], axis=0, ignore_index=True)
+#             elif data_type == 'sgp_rre_prctim':
+#                 self.df_sgp_rre_prctim = pd.concat([self.df_sgp_rre_prctim, new_data_df], axis=0, ignore_index=True)
+#             elif data_type == 'sgp_bpe_prctim':
+#                 self.df_sgp_bpe_prctim = pd.concat([self.df_sgp_bpe_prctim, new_data_df], axis=0, ignore_index=True)
+
+#         elif data_type == 'info':
+#             data_lst = data_to_write.split()
+#             new_data = {
+#                 "date": [dt_now_lst[0]],
+#                 "time": [dt_now_lst[1]],
+#                 "tick": [data_lst[0]],
+#                 "data_saturated": [data_lst[1]],
+#                 "missed_data": [data_lst[2]],
+#                 "data_quality_warning": [data_lst[3]]
+#             }
+#             new_data_df = pd.DataFrame(new_data)
+#             self.df_info = pd.concat([self.df_info, new_data_df], axis=0, ignore_index=True)
+
+        elif data_type == 'hea6':
+            data_lst = data_to_write.split(',')
+            new_data = {
+                "date": [dt_now_lst[0]],
+                "time": [dt_now_lst[1]],
+                "FFT_counter": [data_lst[0]],
+                "index_in_FFT_old_values": [data_lst[1]],
+                "found_peak_index": [data_lst[2]],
+                "found_heart_freq": [data_lst[3]],
+                "found_heart_freq_amplitude_old": [data_lst[4]],
+                "next_largest_peak_amplitude": [data_lst[5]],
+                "found_heart_freq2": [data_lst[6]],
+                "found_heart_rate": [data_lst[7]]
+            }
+            new_data_df = pd.DataFrame(new_data)
+            self.df_hea6 = pd.concat([self.df_hea6, new_data_df], axis=0, ignore_index=True)
+
+        elif data_type[0:3] == 'hea':
+            new_data = {
+                "date": [dt_now_lst[0]],
+                "time": [dt_now_lst[1]]
+            }
+
+            if data_type == 'hea1' or data_type == 'hea2' or data_type == 'hea3':
+                loop_cnt_limit = 600
+            else:
+                loop_cnt_limit = len(data_to_write)
+
+            for i in range(loop_cnt_limit):
+                if data_type == 'hea1':
+                    key_name = "fft_signal_out[" + str(i) + "]"
+                elif data_type == 'hea2':
+                    key_name = "fft_signal_out_dB[" + str(i) + "]"
+                elif data_type == 'hea3':
+                    key_name = "FFT_averaged[" + str(i) + "]"
+                elif data_type == 'hea4':
+                    key_name = "peak_freq[" + str(i) + "]"
+                elif data_type == 'hea5':
+                    key_name = "peak_amplitude[" + str(i) + "]"
+                elif data_type == 'hea7':
+                    key_name = "multiplication_factor" + str(i)
+                elif data_type == 'hea8':
+                    key_name = "peak_weighted[" + str(i) + "]"
+                elif data_type == 'hea9':
+                    key_name = "close_peaks[" + str(i) + "]"
+                elif data_type == 'hea10':
+                    key_name = "close_disturbing_peaks[" + str(i) + "]"
+                elif data_type == 'hea11':
+                    key_name = "old_heart_freq_list[" + str(i) + "]"
+                new_data[key_name] = [data_to_write[i]]
+
+            new_data_df = pd.DataFrame(new_data)
+            if data_type == 'hea1':
+                self.df_hea1 = pd.concat([self.df_hea1, new_data_df], axis=0, ignore_index=True)
+            elif data_type == 'hea2':
+                self.df_hea2 = pd.concat([self.df_hea2, new_data_df], axis=0, ignore_index=True)
+            elif data_type == 'hea3':
+                self.df_hea3 = pd.concat([self.df_hea3, new_data_df], axis=0, ignore_index=True)
+            elif data_type == 'hea4':
+                self.df_hea4 = pd.concat([self.df_hea4, new_data_df], axis=0, ignore_index=True)
+            elif data_type == 'hea5':
+                self.df_hea5 = pd.concat([self.df_hea5, new_data_df], axis=0, ignore_index=True)
+            elif data_type == 'hea7':
+                self.df_hea7 = pd.concat([self.df_hea7, new_data_df], axis=0, ignore_index=True)
+            elif data_type == 'hea8':
+                self.df_hea8 = pd.concat([self.df_hea8, new_data_df], axis=0, ignore_index=True)
+            elif data_type == 'hea9':
+                self.df_hea9 = pd.concat([self.df_hea9, new_data_df], axis=0, ignore_index=True)
+            elif data_type == 'hea10':
+                self.df_hea10 = pd.concat([self.df_hea10, new_data_df], axis=0, ignore_index=True)
+            elif data_type == 'hea11':
+                self.df_hea11 = pd.concat([self.df_hea11, new_data_df], axis=0, ignore_index=True)
+
+        elif data_type == 'sch':
+            data_lst = data_to_write.split()
+            new_data = {
+                "date": [dt_now_lst[0]],
+                "time": [dt_now_lst[1]],
+                "countHys": [data_lst[0]],
+                "trackedRRvector[countHys-1]": [data_lst[1]],
+                "Hcut": [data_lst[2]],
+                "Lcut": [data_lst[3]],
+                "FHighRR": [data_lst[12]],
+                "FLowRR": [data_lst[13]],
+                "respiratory_rate_data": [data_lst[14]],
+                "schNy": [data_lst[15]],
+                "schGa": [data_lst[16]],
+                "count": [data_lst[17]]
+            }
+
+            for i in range(8):
+                key_name = "freqArray[" + str(i) + "]"
+                new_data[key_name] = [data_lst[i + 4]]
+
+            new_data_df = pd.DataFrame(new_data)
+            self.df_sch = pd.concat([self.df_sch, new_data_df], axis=0, ignore_index=True)
 
     def send_data(self, write):
         # print('Send data: ' + write)
