@@ -72,10 +72,11 @@ class SignalProcessing:
         self.heart_rate_thread = threading.Thread(target=self.heart_rate)
         self.heart_rate_thread.start()
 
+        self.window_size_for_bp_movavg = 13
         self.f_sgp_hre_prctim_csv =  sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"]
-        self.movavg_SBP = filter.Filter('movavg', window_size_for_movavg=13)
-        self.movavg_MBP = filter.Filter('movavg', window_size_for_movavg=13)
-        self.movavg_DBP = filter.Filter('movavg', window_size_for_movavg=13)
+        self.movavg_SBP = filter.Filter('movavg', window_size_for_movavg=self.window_size_for_bp_movavg)
+        self.movavg_MBP = filter.Filter('movavg', window_size_for_movavg=self.window_size_for_bp_movavg)
+        self.movavg_DBP = filter.Filter('movavg', window_size_for_movavg=self.window_size_for_bp_movavg)
 
         # Starta blood_pressure
         print("Start thread blood_pressure")
@@ -561,6 +562,7 @@ class SignalProcessing:
                         break
 
 #             while self.go:
+                count_bp_data = 0
                 while sv.list_of_variables_for_threads["is_measuring"]:
 
                     dt_stlp = datetime.datetime.now()
@@ -589,9 +591,12 @@ class SignalProcessing:
                         sbp_movavg = self.movavg_SBP.filter(sbp)
                         mbp_movavg = self.movavg_MBP.filter(mbp)
                         dbp_movavg = self.movavg_DBP.filter(dbp)
-                        self.bluetooth_server.write_data_to_app(
-                            str(sbp) + ' ' + str(mbp) + ' ' + str(dbp) + ' ' \
-                            + str(sbp_movavg) + ' ' + str(mbp_movavg) + ' ' + str(dbp_movavg), 'blood pressure')  # Send to app
+                        if count_bp_data < self.window_size_for_bp_movavg:
+                            count_bp_data += 1
+                        if count_bp_data >= self.window_size_for_bp_movavg:
+                            self.bluetooth_server.write_data_to_app(
+                                str(sbp) + ' ' + str(mbp) + ' ' + str(dbp) + ' ' \
+                                + str(sbp_movavg) + ' ' + str(mbp_movavg) + ' ' + str(dbp_movavg), 'blood pressure')  # Send to app
                         self.bluetooth_server.write_data_only_to_storage(
                             str(movavgHRdata[-1]) + ',' \
                             + str(idxpeak0) + ',' + str(idxbottom) + ',' + str(idxpeak1) + ',' \
