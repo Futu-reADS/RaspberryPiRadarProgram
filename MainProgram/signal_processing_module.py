@@ -64,6 +64,10 @@ class SignalProcessing:
         self.number_of_old_FFT = 15
         self.FFT_old_values = np.zeros((self.number_of_old_FFT, int(
             self.total_fft_length/2)))  # Saving old values for moving mean
+        sv.list_of_variables_for_threads["freq_range_div_num"] = int(self.total_fft_length/2)
+
+        self.upl_of_old_heart_freq_list = 20  # upper limit of number of elements in old_heart_freq_list
+        sv.list_of_variables_for_threads["upl_of_old_heart_freq_list"] = self.upl_of_old_heart_freq_list
 
         self.measurement_start_time =  sv.list_of_variables_for_threads["measurement_start_time"]
 
@@ -129,8 +133,6 @@ class SignalProcessing:
 #                 start_time = time.time()
                 first_real_value = True  # the first real heart rate found
                 old_heart_freq_list = []  # old values
-
-                upl_of_old_heart_freq_list = 20  # upper limit of number of elements in old_heart_freq_list
 
                 found_peak_reliability = "None"
                 found_peak_reliability_int = 0
@@ -290,7 +292,7 @@ class SignalProcessing:
 
                             old_heart_freq_list.append(found_heart_freq)  # save last 20 values
 #                             if len(old_heart_freq_list) > 5:
-                            if len(old_heart_freq_list) > upl_of_old_heart_freq_list:
+                            if len(old_heart_freq_list) > self.upl_of_old_heart_freq_list:
                                 old_heart_freq_list.pop(0)
 
                             self.bluetooth_server.write_data_only_to_storage(old_heart_freq_list, 'hea11')
@@ -299,7 +301,7 @@ class SignalProcessing:
 #                                               0:-2]) - found_heart_freq) > 0.1:  # too big change, probably noise or other disruptions
 #                             if np.abs(np.mean(old_heart_freq_list[0:-2]) - found_heart_freq) > 0.05 \
                             if np.abs(np.mean(old_heart_freq_list[0:-2]) - found_heart_freq) > 0.1 \
-                                and len(old_heart_freq_list) >= upl_of_old_heart_freq_list:  # too big change, probably noise or other disruptions (except until old_heart_freq_list is filled with measured values.)
+                                and len(old_heart_freq_list) >= self.upl_of_old_heart_freq_list:  # too big change, probably noise or other disruptions (except until old_heart_freq_list is filled with measured values.)
                                 found_heart_freq = np.mean(old_heart_freq_list)
                                 #print('Too big change, probably noise or other disruptions, old:', old_heart_freq_list[-1])
 
@@ -333,7 +335,7 @@ class SignalProcessing:
                     data_to_write_in_hea6 += str(found_heart_freq) + ","
 
                     if not measurement_data_stable_state:
-                        if len(old_heart_freq_list) >= upl_of_old_heart_freq_list and found_heart_freq >= 50/60 and found_heart_freq < 100/60:
+                        if len(old_heart_freq_list) >= self.upl_of_old_heart_freq_list and found_heart_freq >= 50/60 and found_heart_freq < 100/60:
                             measurement_data_stable_state = True
 
                     if not first_real_value:

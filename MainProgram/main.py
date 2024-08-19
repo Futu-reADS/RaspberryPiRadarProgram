@@ -47,6 +47,10 @@ def main():
 
     run_measurement = []        # Determines if data is being sent to devices or not
     sample_freq = 0         # Value is updated in DataAcquisition. Needs to be the same in the whole program
+
+    freq_range_div_num = 0         # Value is updated in SignalProcessing. Needs to be the same in the whole program
+    upl_of_old_heart_freq_list = 0         # Value is updated in SignalProcessing. Needs to be the same in the whole program
+
     sv.list_of_variables_for_threads = {"HR_filtered_queue": HR_filtered_queue, "HR_final_queue": HR_final_queue,
                                         "RR_filtered_queue": RR_filtered_queue, "RR_final_queue": RR_final_queue,
                                         "RTB_final_queue": RTB_final_queue, "go": go, "run_measurement": run_measurement,
@@ -58,6 +62,8 @@ def main():
                                         "terminate_yet": terminate_yet,
                                         "is_measuring": is_measuring,
                                         "HR_filtered_queue_movavg": HR_filtered_queue_movavg,
+                                        "freq_range_div_num": freq_range_div_num,
+                                        'upl_of_old_heart_freq_list': upl_of_old_heart_freq_list,
                                         "f_daq_run_prctim_csv": None,
                                         "f_sgp_hre_prctim_csv": None,
                                         "f_sgp_rre_prctim_csv": None,

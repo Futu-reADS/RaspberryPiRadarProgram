@@ -334,15 +334,16 @@ class BluetoothServer:
                                                         "freqArray[0]", "freqArray[1]", "freqArray[2]", "freqArray[3]", "freqArray[4]", "freqArray[5]", "freqArray[6]", "freqArray[7]", \
                                                         "FHighRR", "FLowRR", "respiratory_rate_data", "schNy", "schGa", "count"])
                     columns_lst_for_hea1 = ["date", "time"]
-                    for i in range(600):
+                    freq_range_div_num = sv.list_of_variables_for_threads["freq_range_div_num"]
+                    for i in range(freq_range_div_num):
                         columns_lst_for_hea1.append("fft_signal_out[" + str(i) + "]")
                     self.df_hea1 = pd.DataFrame(columns=columns_lst_for_hea1)
                     columns_lst_for_hea2 = ["date", "time"]
-                    for i in range(600):
+                    for i in range(freq_range_div_num):
                         columns_lst_for_hea2.append("fft_signal_out_dB[" + str(i) + "]")
                     self.df_hea2 = pd.DataFrame(columns=columns_lst_for_hea2)
                     columns_lst_for_hea3 = ["date", "time"]
-                    for i in range(600):
+                    for i in range(freq_range_div_num):
                         columns_lst_for_hea3.append("FFT_averaged[" + str(i) + "]")
                     self.df_hea3 = pd.DataFrame(columns=columns_lst_for_hea3)
                     self.df_hea4 = pd.DataFrame(columns=["date", "time"])
@@ -355,7 +356,8 @@ class BluetoothServer:
                     self.df_hea9 = pd.DataFrame(columns=["date", "time"])
                     self.df_hea10 = pd.DataFrame(columns=["date", "time"])
                     columns_lst_for_hea11 = ["date", "time"]
-                    for i in range(20):
+                    upl_of_old_heart_freq_list = sv.list_of_variables_for_threads["upl_of_old_heart_freq_list"]
+                    for i in range(upl_of_old_heart_freq_list):
                         columns_lst_for_hea11.append("old_heart_freq_list[" + str(i) + "]")
                     self.df_hea11 = pd.DataFrame(columns=columns_lst_for_hea11)
                     self.df_bp = pd.DataFrame(columns=["date", "time", "SBP", "MBP", "DBP", "SBP_movavg", "MBP_movavg", "DBP_movavg"])
@@ -593,7 +595,7 @@ class BluetoothServer:
             }
 
             if data_type == 'hea1' or data_type == 'hea2' or data_type == 'hea3':
-                loop_cnt_limit = 600
+                loop_cnt_limit = sv.list_of_variables_for_threads["freq_range_div_num"]
             else:
                 loop_cnt_limit = len(data_to_write)
 
