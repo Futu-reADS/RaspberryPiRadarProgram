@@ -323,8 +323,14 @@ class DataAcquisition(threading.Thread):
             self.current_date_time = self.reference_date_time
             self.is_first_get_data_call = False
         else:
-            tick_diff = info[0]["tick"] - self.reference_tick_value
+            if info[0]["tick"] < self.reference_tick_value:
+                tick_diff = 0xFFFFFFFF + info[0]["tick"] - self.reference_tick_value
+            else:
+                tick_diff = info[0]["tick"] - self.reference_tick_value
             self.current_date_time = self.reference_date_time + datetime.timedelta(microseconds=tick_diff)
+            if info[0]["tick"] < self.reference_tick_value:
+                self.reference_date_time = self.current_date_time
+                self.reference_tick_value = info[0]["tick"]
 
         sv.list_of_variables_for_threads["current_date_time"] = self.current_date_time
 
