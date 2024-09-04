@@ -48,7 +48,12 @@ def main():
     run_measurement = []        # Determines if data is being sent to devices or not
     sample_freq = 0         # Value is updated in DataAcquisition. Needs to be the same in the whole program
 
+    F_scan_lower = 0         # Value is updated in SignalProcessing. Needs to be the same in the whole program
+    F_scan_upper = 0         # Value is updated in SignalProcessing. Needs to be the same in the whole program
     freq_range_div_num = 0         # Value is updated in SignalProcessing. Needs to be the same in the whole program
+    idx_lst_for_hea3 = []         # Value is updated in SignalProcessing. Needs to be the same in the whole program
+    freq = []         # Value is updated in SignalProcessing. Needs to be the same in the whole program
+    peak_freq_linspace = []         # Value is updated in SignalProcessing. Needs to be the same in the whole program
     upl_of_old_heart_freq_list = 0         # Value is updated in SignalProcessing. Needs to be the same in the whole program
 
     sv.list_of_variables_for_threads = {"HR_filtered_queue": HR_filtered_queue, "HR_final_queue": HR_final_queue,
@@ -62,13 +67,19 @@ def main():
                                         "terminate_yet": terminate_yet,
                                         "is_measuring": is_measuring,
                                         "HR_filtered_queue_movavg": HR_filtered_queue_movavg,
+                                        "F_scan_lower": F_scan_lower,
+                                        "F_scan_upper": F_scan_upper,
                                         "freq_range_div_num": freq_range_div_num,
+                                        "idx_lst_for_hea3": idx_lst_for_hea3,
+                                        "freq": freq,
+                                        "peak_freq_linspace": peak_freq_linspace,
                                         'upl_of_old_heart_freq_list': upl_of_old_heart_freq_list,
                                         "f_daq_run_prctim_csv": None,
                                         "f_sgp_hre_prctim_csv": None,
                                         "f_sgp_rre_prctim_csv": None,
                                         "f_sgp_bpe_prctim_csv": None,
                                         "f_info_csv": None,
+                                        "f_mem_csv": None,
                                         "current_date_time": None}
     FFTfreq = [1, 2, 3]
     FFTamplitude = [1, 2, 3]
@@ -139,7 +150,7 @@ def main():
         # time.sleep(1)
         #print(FFTfreq, FFTamplitude)
 
-        # Waits for running threads to finish their loops
+    # Waits for running threads to finish their loops
     bluetooth_server.connect_device_thread.join()
     print("bluetooth_server is closed")
     signal_processing.heart_rate_thread.join()

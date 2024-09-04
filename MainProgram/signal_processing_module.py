@@ -66,6 +66,18 @@ class SignalProcessing:
             self.total_fft_length/2)))  # Saving old values for moving mean
         sv.list_of_variables_for_threads["freq_range_div_num"] = int(self.total_fft_length/2)
 
+        self.F_scan_lower = 0.8
+        self.F_scan_upper = 3
+        self.idx_lst_for_hea3 = []
+        freq = np.linspace(0, self.sample_freq/2, num=int(self.total_fft_length/2))
+        for i, itm in enumerate(freq):
+            if itm > self.F_scan_lower and itm <= self.F_scan_upper:
+                self.idx_lst_for_hea3.append(i)
+        self.peak_freq_linspace = np.linspace(self.F_scan_lower, self.F_scan_upper, num=len(self.idx_lst_for_hea3))
+        sv.list_of_variables_for_threads["idx_lst_for_hea3"] = self.idx_lst_for_hea3
+        sv.list_of_variables_for_threads["freq"] = freq
+        sv.list_of_variables_for_threads["peak_freq_linspace"] = self.peak_freq_linspace
+
         self.upl_of_old_heart_freq_list = 20  # upper limit of number of elements in old_heart_freq_list
         sv.list_of_variables_for_threads["upl_of_old_heart_freq_list"] = self.upl_of_old_heart_freq_list
 
@@ -156,14 +168,14 @@ class SignalProcessing:
                     # print("in while loop heart_rate")
                     fft_signal_out = self.windowedFFT()
 
-                    self.bluetooth_server.write_data_only_to_storage(fft_signal_out, 'hea1')
+#                     self.bluetooth_server.write_data_only_to_storage(fft_signal_out, 'hea1')
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"], dt_stlp, "calculate_fft_signal_out")
 #                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "sgp_hre_prctim", dt_stlp, "calculate_fft_signal_out")
 
                     fft_signal_out_dB = 20*np.log10(fft_signal_out)  # As of May 7, lenght of vector is 600
 
-                    self.bluetooth_server.write_data_only_to_storage(fft_signal_out_dB, 'hea2')
+#                     self.bluetooth_server.write_data_only_to_storage(fft_signal_out_dB, 'hea2')
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"], dt_tmp, "calculate_fft_signal_out_dB")
 #                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "sgp_hre_prctim", dt_tmp, "calculate_fft_signal_out_dB")
@@ -174,7 +186,7 @@ class SignalProcessing:
                     # fft movemean
                     FFT_averaged = self.mean_of_old_values(FFT_counter)
 
-                    self.bluetooth_server.write_data_only_to_storage(FFT_averaged, 'hea3')
+                    self.bluetooth_server.write_data_only_to_storage(FFT_averaged[self.idx_lst_for_hea3[0]:self.idx_lst_for_hea3[-1]+1], 'hea3')
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"], dt_tmp, "calculate_FFT_averaged")
 #                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "sgp_hre_prctim", dt_tmp, "calculate_FFT_averaged")
@@ -183,9 +195,9 @@ class SignalProcessing:
                     # Returns the peaks in set inteval from averaged FFT
                     peak_freq, peak_amplitude = self.findPeaks(FFT_averaged)
 
-                    self.bluetooth_server.write_data_only_to_storage(peak_freq, 'hea4')
+#                     self.bluetooth_server.write_data_only_to_storage(peak_freq, 'hea4')
 
-                    self.bluetooth_server.write_data_only_to_storage(peak_amplitude, 'hea5')
+#                     self.bluetooth_server.write_data_only_to_storage(peak_amplitude, 'hea5')
 
                     data_to_write_in_hea6 += str(FFT_counter) + "," + \
                                              str(index_in_FFT_old_values) + ","
@@ -235,9 +247,9 @@ class SignalProcessing:
                                     # If there is a lot of peaks to disturb the measurement
                                     close_disturbing_peaks.append(peak_freq[i])
 
-                            self.bluetooth_server.write_data_only_to_storage(multiplication_factor_lst, 'hea7')
+#                             self.bluetooth_server.write_data_only_to_storage(multiplication_factor_lst, 'hea7')
 
-                            self.bluetooth_server.write_data_only_to_storage(self.peak_weighted, 'hea8')
+#                             self.bluetooth_server.write_data_only_to_storage(self.peak_weighted, 'hea8')
 
                             self.bluetooth_server.write_data_only_to_storage(close_peaks, 'hea9')
 
@@ -432,7 +444,9 @@ class SignalProcessing:
 
         # print("Window slide: ", window_slide)
         for i in range(self.window_slide):  # fills the fft_window array with window_slide values from filtered queue
+#             sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'windowedFFT:before_bandpass_filtered_data_HR_get')
             self.fft_window[self.index_fft] = self.HR_filtered_queue.get()
+#             sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'windowedFFT:after_bandpass_filtered_data_HR_get')
             self.index_fft += 1
             if self.index_fft == self.window_width:
                 self.index_fft = 0
@@ -478,13 +492,19 @@ class SignalProcessing:
     def findPeaks(self, FFT_averaged):
         # Lower and higher freq for removing unwanted areas of the FFT
         # TODO Unsure about this part, same max freq several times in a row
-        F_scan_lower = 0.8
-        F_scan_upper = 3
-        #print("len self freq: ", len(self.freq))
-        FFT_in_interval = FFT_averaged[self.freq <= F_scan_upper]
-        freq2 = self.freq[self.freq <= F_scan_upper]
-        FFT_in_interval = FFT_in_interval[freq2 > F_scan_lower]
-        peak_freq_linspace = np.linspace(F_scan_lower, F_scan_upper, num=len(FFT_in_interval))
+#         F_scan_lower = 0.8
+#         F_scan_upper = 3
+#         #print("len self freq: ", len(self.freq))
+#         FFT_in_interval = FFT_averaged[self.freq <= F_scan_upper]
+#         freq2 = self.freq[self.freq <= F_scan_upper]
+#         FFT_in_interval = FFT_in_interval[freq2 > F_scan_lower]
+#         peak_freq_linspace = np.linspace(F_scan_lower, F_scan_upper, num=len(FFT_in_interval))
+
+        FFT_in_interval = FFT_averaged[self.freq <= self.F_scan_upper]
+        freq2 = self.freq[self.freq <= self.F_scan_upper]
+        FFT_in_interval = FFT_in_interval[freq2 > self.F_scan_lower]
+        peak_freq_linspace = self.peak_freq_linspace
+
         #print("len of fft in interval: ", len(FFT_in_interval))
         #print("FFT_in_interval", FFT_in_interval, "\n", len(FFT_in_interval))
 
@@ -610,7 +630,9 @@ class SignalProcessing:
 
                     dt_tmp = datetime.datetime.now()
 
+#                     sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'blood_pressure:before_HR_filtered_queue_movavg_get')
                     val = self.HR_filtered_queue_movavg.get()
+#                     sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'blood_pressure:after_HR_filtered_queue_movavg_get')
 
                     sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_bpe_prctim_csv"], dt_tmp, "get_HR_filtered_queue_movavg")
 #                     sv.clc_elpsd_tim(self.bluetooth_server, "sgp_bpe_prctim", dt_tmp, "get_HR_filtered_queue_movavg")
@@ -679,7 +701,9 @@ class SignalProcessing:
 
                     dt_tmp = datetime.datetime.now()
 
+#                     sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'schmittTrigger:before_RR_filtered_queue_get')
                     trackedRRvector[countHys - 1] = self.RR_filtered_queue.get()
+#                     sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'schmittTrigger:after_RR_filtered_queue_get')
 
                     sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"], dt_tmp, "get_RR_filtered_queue")
 #                     sv.clc_elpsd_tim(self.bluetooth_server, "sgp_rre_prctim", dt_tmp, "get_RR_filtered_queue")

@@ -251,19 +251,25 @@ class DataAcquisition(threading.Thread):
                                             str(bandpass_filtered_data_RR)
                             self.bluetooth_server.write_data_only_to_storage(data_to_write, 'raw')
 
+                    sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'run:before_bandpass_filtered_data_HR_put')
                     self.HR_filtered_queue.put(
                         bandpass_filtered_data_HR)  # Put filtered data in output queue to send to SignalProcessing
+#                     sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'run:after_bandpass_filtered_data_HR_put')
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "put_HR_filterd_queue")
 #                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "put_HR_filterd_queue")
 
+#                    sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'run:before_HR_filtered_queue_movavg_put')
                     self.HR_filtered_queue_movavg.put(bandpass_filtered_data_HR_movavg)
+#                    sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'run:after_HR_filtered_queue_movavg_put')
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "put_HR_filterd_queue_movavg")
 #                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "put_HR_filterd_queue_movavg")
 
+#                    sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'run:before_RR_filtered_queue_movavg_put')
                     self.RR_filtered_queue.put(bandpass_filtered_data_RR)
                     # self.RTB_final_queue.put(bandpass_filtered_data_RR)
+#                    sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'run:after_RR_filtered_queue_movavg_put')
 
                     sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_daq_run_prctim_csv"], dt_tmp, "put_RR_filterd_queue")
 #                     sv.clc_elpsd_tim(self.bluetooth_server, "daq_run_prctim", dt_tmp, "put_RR_filterd_queue")
