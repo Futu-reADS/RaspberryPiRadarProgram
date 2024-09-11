@@ -28,6 +28,7 @@ import acconeer.exptool as et
 
 import shared_variables as sv
 import pandas as pd
+import asyncio
 
 # disable the timer
 # timer_event = threading.Event()
@@ -249,7 +250,8 @@ class DataAcquisition(threading.Thread):
                                             str(bandpass_filtered_data_HR) + ' ' + \
                                             str(bandpass_filtered_data_HR_movavg) + ' ' + \
                                             str(bandpass_filtered_data_RR)
-                            self.bluetooth_server.write_data_only_to_storage(data_to_write, 'raw')
+#                             self.bluetooth_server.write_data_only_to_storage(data_to_write, 'raw')
+                            asyncio.run(self.bluetooth_server.write_data_only_to_storage(data_to_write, 'raw'))
 
                     sv.print_memory_full_info(sv.list_of_variables_for_threads["f_mem_csv"], 'run:before_bandpass_filtered_data_HR_put')
                     self.HR_filtered_queue.put(
