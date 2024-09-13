@@ -364,8 +364,10 @@ class SignalProcessing:
                         print("Found heart rate Hz and BPM: ", found_heart_freq, found_heart_rate, 'Reliability:', found_peak_reliability)
                         # Do not notify clients until measurement data is stable
                         if measurement_data_stable_state:
-                            self.bluetooth_server.write_data_to_app(
-                                str(found_heart_rate) + ' ' + found_peak_reliability, 'heart rate')  # Send to app
+#                             self.bluetooth_server.write_data_to_app(
+#                                 str(found_heart_rate) + ' ' + found_peak_reliability, 'heart rate')  # Send to app
+                            asyncio.run(self.bluetooth_server.write_data_to_app(
+                                str(found_heart_rate) + ' ' + found_peak_reliability, 'heart rate'))  # Send to app
 
                     else:
                         print("Waiting to find heart rate")
@@ -625,9 +627,11 @@ class SignalProcessing:
                         if count_bp_data < self.window_size_for_bp_movavg:
                             count_bp_data += 1
                         if count_bp_data >= self.window_size_for_bp_movavg:
-                            self.bluetooth_server.write_data_to_app(
+#                             self.bluetooth_server.write_data_to_app(
+                            asyncio.run(self.bluetooth_server.write_data_to_app(
                                 str(sbp) + ' ' + str(mbp) + ' ' + str(dbp) + ' ' \
-                                + str(sbp_movavg) + ' ' + str(mbp_movavg) + ' ' + str(dbp_movavg), 'blood pressure')  # Send to app
+#                                 + str(sbp_movavg) + ' ' + str(mbp_movavg) + ' ' + str(dbp_movavg), 'blood pressure')  # Send to app
+                                + str(sbp_movavg) + ' ' + str(mbp_movavg) + ' ' + str(dbp_movavg), 'blood pressure'))  # Send to app
 #                         self.bluetooth_server.write_data_only_to_storage(
                         asyncio.run(self.bluetooth_server.write_data_only_to_storage(
                             str(movavgHRdata[-1]) + ',' \
@@ -704,7 +708,8 @@ class SignalProcessing:
                         # sends zero as breath rate if no value was found the last twenty seconds
 #                     if self.time_when_sent_last_value is not None and (time.time() - self.time_when_sent_last_value > 14):
 #                         # sends zero as breath rate if no value was found the last fourteen seconds
-                        self.bluetooth_server.write_data_to_app(0, 'breath rate')
+#                         self.bluetooth_server.write_data_to_app(0, 'breath rate')
+                        asyncio.run(self.bluetooth_server.write_data_to_app(0, 'breath rate'))
 #                         # sends last breath rate if no value was found the last ten seconds
 #                         self.bluetooth_server.write_data_to_app(respiratory_rate_data, 'breath rate')
                         self.time_when_sent_last_value = time.time()
@@ -771,7 +776,8 @@ class SignalProcessing:
                                     measurement_data_stable_state = False
                             # Do not notify clients until measurement data is stable
                             if measurement_data_stable_state:
-                                self.bluetooth_server.write_data_to_app(respiratory_rate_data, 'breath rate')
+#                                 self.bluetooth_server.write_data_to_app(respiratory_rate_data, 'breath rate')
+                                asyncio.run(self.bluetooth_server.write_data_to_app(respiratory_rate_data, 'breath rate'))
                             self.time_when_sent_last_value = time.time()
                             # done = time.time() # verkar ta lite tid, troligtvis på grund av getMeanOfFrequency
                             # print('send to app', (done - start)*1000)

@@ -81,7 +81,33 @@ class BluetoothServer:
         self.is_first_write_data_only_to_storage_call_for_hea11 = True  # Initialize
         self.is_first_write_data_only_to_storage_call_for_sch = True  # Initialize
 
+#         self.is_first_write_data_only_to_storage_call_for_daq_run_prctim = True  # Initialize
+#         self.is_first_write_data_only_to_storage_call_for_sgp_hre_prctim = True  # Initialize
+#         self.is_first_write_data_only_to_storage_call_for_sgp_rre_prctim = True  # Initialize
+#         self.is_first_write_data_only_to_storage_call_for_sgp_bpe_prctim = True  # Initialize
+#         self.is_first_write_data_only_to_storage_call_for_info = True  # Initialize
+#         self.is_first_write_data_only_to_storage_call_for_mem = True  # Initialize
+
+        self.filename_hr_csv = ''
+        self.filename_rr_csv = ''
+        self.filename_rtb_csv = ''
+        self.filename_bp_csv = ''
+
+        self.filename_raw_csv = ''
+        self.filename_bpint_csv = ''
         self.filename_hea3_csv = ''
+        self.filename_hea6_csv = ''
+        self.filename_hea9_csv = ''
+        self.filename_hea10_csv = ''
+        self.filename_hea11_csv = ''
+        self.filename_sch_csv = ''
+
+#         self.filename_daq_run_prctim_csv = ''
+#         self.filename_sgp_hre_prctim_csv = ''
+#         self.filename_sgp_rre_prctim_csv = ''
+#         self.filename_sgp_bpe_prctim_csv = ''
+#         self.filename_info_csv = ''
+#         self.filename_mem_csv = ''
 
         self.idx_lst_for_hea3 = []
 
@@ -198,25 +224,26 @@ class BluetoothServer:
                         sv.list_of_variables_for_threads["is_measuring"] = self.is_measuring
 
                         # CSVファイルクローズ処理
-                        self.df_hr.to_csv(filepath + date_time + '/log_hr_' + date_time + '.csv', index=False)  # CSV file for heart rate
-                        self.df_rr.to_csv(filepath + date_time + '/log_rr_' + date_time + '.csv', index=False)  # CSV file for respiration rate
-                        self.df_rtb.to_csv(filepath + date_time + '/log_rtb_' + date_time + '.csv', index=False)  # CSV file for real time breath
-                        self.df_raw.to_csv(filepath + date_time + '/log_raw_' + date_time + '.csv', index=False)  # CSV file for tracked data
-                        self.df_sch.to_csv(filepath + date_time + '/log_sch_' + date_time + '.csv', index=False)  # CSV file for schmittTrigger() internal data
+                        self.df_hr.to_csv(self.filename_hr_csv, mode='a', index=False)  # CSV file for heart rate
+                        self.df_rr.to_csv(self.filename_rr_csv, mode='a', index=False)  # CSV file for respiration rate
+                        self.df_rtb.to_csv(self.filename_rtb_csv, mode='a', index=False)  # CSV file for real time breath
+                        self.df_bp.to_csv(self.filename_bp_csv, mode='a', index=False)  # CSV file for blood pressure
+
+                        self.df_raw.to_csv(self.filename_raw_csv, mode='a', index=False)  # CSV file for tracked data
+                        self.df_bpint.to_csv(self.filename_bpint_csv, mode='a', index=False)  # CSV file for blood_pressure() internal data
 #                         self.df_hea1.to_csv(filepath + date_time + '/log_hea1_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (fft_signal_out)  # for debug
 #                         self.df_hea2.to_csv(filepath + date_time + '/log_hea2_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (fft_signal_out_dB)  # for debug
-#                         self.df_hea3.to_csv(filepath + date_time + '/log_hea3_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (FFT_averaged)  # for debug
                         self.df_hea3.to_csv(self.filename_hea3_csv, mode='a', index=False)  # CSV file for heart_rate() internal data (FFT_averaged)  # for debug
 #                         self.df_hea4.to_csv(filepath + date_time + '/log_hea4_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (peak_freq)
 #                         self.df_hea5.to_csv(filepath + date_time + '/log_hea5_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (peak_amplitude)
-                        self.df_hea6.to_csv(filepath + date_time + '/log_hea6_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (found_peak_index)
+                        self.df_hea6.to_csv(self.filename_hea6_csv, mode='a', index=False)  # CSV file for heart_rate() internal data (found_peak_index)
 #                         self.df_hea7.to_csv(filepath + date_time + '/log_hea7_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (multiplication_factor)
 #                         self.df_hea8.to_csv(filepath + date_time + '/log_hea8_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (peak_weighted)
-                        self.df_hea9.to_csv(filepath + date_time + '/log_hea9_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (close_peaks)
-                        self.df_hea10.to_csv(filepath + date_time + '/log_hea10_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (close_disturbing_peaks)
-                        self.df_hea11.to_csv(filepath + date_time + '/log_hea11_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (old_heart_freq_list)  # for debug
-                        self.df_bp.to_csv(filepath + date_time + '/log_bp_' + date_time + '.csv', index=False)  # CSV file for blood pressure
-                        self.df_bpint.to_csv(filepath + date_time + '/log_bpint_' + date_time + '.csv', index=False)  # CSV file for blood_pressure() internal data
+                        self.df_hea9.to_csv(self.filename_hea9_csv, mode='a', index=False)  # CSV file for heart_rate() internal data (close_peaks)
+                        self.df_hea10.to_csv(self.filename_hea10_csv, mode='a', index=False)  # CSV file for heart_rate() internal data (close_disturbing_peaks)
+                        self.df_hea11.to_csv(self.filename_hea11_csv, mode='a', index=False)  # CSV file for heart_rate() internal data (old_heart_freq_list)  # for debug
+                        self.df_sch.to_csv(self.filename_sch_csv, mode='a', index=False)  # CSV file for schmittTrigger() internal data
+
                         self.f_daq_run_prctim_csv.close()
 #                         self.df_daq_run_prctim.to_csv(filepath + date_time + '/log_daq_run_prctim_' + date_time + '.csv', index=False)  # CSV file for recording processing time of run()@data_acquisition_module.py
                         self.f_sgp_hre_prctim_csv.close()
@@ -228,6 +255,12 @@ class BluetoothServer:
                         self.f_info_csv.close()
 #                         self.df_info.to_csv(filepath + date_time + '/log_info_' + date_time + '.csv', index=False)  # CSV file for recording "info" variable value of get_data()@data_acquisition_module.py
                         self.f_mem_csv.close()
+#                         self.df_daq_run_prctim.to_csv(self.filename_daq_run_prctim_csv, mode='a', index=False)
+#                         self.df_sgp_hre_prctim.to_csv(self.filename_sgp_hre_prctim_csv, mode='a', index=False)
+#                         self.df_sgp_rre_prctim.to_csv(self.filename_sgp_rre_prctim_csv, mode='a', index=False)
+#                         self.df_sgp_bpe_prctim.to_csv(self.filename_sgp_bpe_prctim_csv, mode='a', index=False)
+#                         self.df_info.to_csv(self.filename_info_csv, mode='a', index=False)
+#                         self.df_mem.to_csv(self.filename_mem_csv, mode='a', index=False)
 
                         print(filename_daq_run_prctim_csv + " is closed")
                         print(filename_sgp_hre_prctim_csv + " is closed")
@@ -348,13 +381,33 @@ class BluetoothServer:
                     date_time = timestamp.strftime('%Y%m%d_%H%M%S')
                     if not os.path.exists(filepath + date_time):
                         os.mkdir(filepath + date_time)
-                    filename_daq_run_prctim_csv = filepath + date_time + '/log_daq_run_prctim_' + date_time + '.csv'  # CSV file for recording processing time of run()@data_acquisition_module.py
-                    filename_sgp_hre_prctim_csv = filepath + date_time + '/log_sgp_hre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of heart_rate()@signal_processing_module.py
-                    filename_sgp_rre_prctim_csv = filepath + date_time + '/log_sgp_rre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of schmittTrigger()@signal_processing_module.py
-                    filename_sgp_bpe_prctim_csv = filepath + date_time + '/log_sgp_bpe_prctim_' + date_time + '.csv'  # CSV file for recording processing time of blood_pressure()@signal_processing_module.py
-                    filename_info_csv = filepath + date_time + '/log_info_' + date_time + '.csv'  # CSV file for recording "info" variable value of get_data()@data_acquisition_module.py
-                    filename_mem_csv = filepath + date_time + '/log_mem_' + date_time + '.csv'  # CSV file for recording changes in memory usage
+
+                    self.filename_hr_csv = filepath + date_time + '/log_hr_' + date_time + '.csv'  # CSV file for heart rate
+                    self.filename_rr_csv = filepath + date_time + '/log_rr_' + date_time + '.csv'  # CSV file for respiration rate
+                    self.filename_rtb_csv = filepath + date_time + '/log_rtb_' + date_time + '.csv'  # CSV file for real time breath
+                    self.filename_bp_csv = filepath + date_time + '/log_bp_' + date_time + '.csv'  # CSV file for blood pressure
+
+                    self.filename_raw_csv = filepath + date_time + '/log_raw_' + date_time + '.csv'  # CSV file for tracked data
+                    self.filename_bpint_csv = filepath + date_time + '/log_bpint_' + date_time + '.csv'  # CSV file for blood_pressure() internal data
+                    self.filename_hea6_csv = filepath + date_time + '/log_hea6_' + date_time + '.csv'  # CSV file for heart_rate() internal data (found_peak_index)  # for debug
                     self.filename_hea3_csv = filepath + date_time + '/log_hea3_' + date_time + '.csv'  # CSV file for heart_rate() internal data (FFT_averaged)  # for debug
+                    self.filename_hea9_csv = filepath + date_time + '/log_hea9_' + date_time + '.csv'  # CSV file for heart_rate() internal data (close_peaks)  # for debug
+                    self.filename_hea10_csv = filepath + date_time + '/log_hea10_' + date_time + '.csv'  # CSV file for heart_rate() internal data (close_disturbing_peaks)  # for debug
+                    self.filename_hea11_csv = filepath + date_time + '/log_hea11_' + date_time + '.csv'  # CSV file for heart_rate() internal data (old_heart_freq_list)  # for debug
+                    self.filename_sch_csv = filepath + date_time + '/log_sch_' + date_time + '.csv'  # CSV file for schmittTrigger() internal data
+
+                    filename_daq_run_prctim_csv = filepath + date_time + '/log_daq_run_prctim_' + date_time + '.csv'  # CSV file for recording processing time of run()@data_acquisition_module.py
+#                     self.filename_daq_run_prctim_csv = filepath + date_time + '/log_daq_run_prctim_' + date_time + '.csv'  # CSV file for recording processing time of run()@data_acquisition_module.py
+                    filename_sgp_hre_prctim_csv = filepath + date_time + '/log_sgp_hre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of heart_rate()@signal_processing_module.py
+#                     self.filename_sgp_hre_prctim_csv = filepath + date_time + '/log_sgp_hre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of heart_rate()@signal_processing_module.py
+                    filename_sgp_rre_prctim_csv = filepath + date_time + '/log_sgp_rre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of schmittTrigger()@signal_processing_module.py
+#                     self.filename_sgp_rre_prctim_csv = filepath + date_time + '/log_sgp_rre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of schmittTrigger()@signal_processing_module.py
+                    filename_sgp_bpe_prctim_csv = filepath + date_time + '/log_sgp_bpe_prctim_' + date_time + '.csv'  # CSV file for recording processing time of blood_pressure()@signal_processing_module.py
+#                     self.filename_sgp_bpe_prctim_csv = filepath + date_time + '/log_sgp_bpe_prctim_' + date_time + '.csv'  # CSV file for recording processing time of blood_pressure()@signal_processing_module.py
+                    filename_info_csv = filepath + date_time + '/log_info_' + date_time + '.csv'  # CSV file for recording "info" variable value of get_data()@data_acquisition_module.py
+#                     self.filename_info_csv = filepath + date_time + '/log_info_' + date_time + '.csv'  # CSV file for recording "info" variable value of get_data()@data_acquisition_module.py
+                    filename_mem_csv = filepath + date_time + '/log_mem_' + date_time + '.csv'  # CSV file for recording changes in memory usage
+#                     self.filename_mem_csv = filepath + date_time + '/log_mem_' + date_time + '.csv'  # CSV file for recording changes in memory usage
 
                     self.df_hr = pd.DataFrame(columns=["date", "time", "heart_rate", "reliability"])
                     self.df_rr = pd.DataFrame(columns=["date", "time", "respiration_rate"])
@@ -436,6 +489,7 @@ class BluetoothServer:
                     self.f_info_csv = open(filename_info_csv, 'w')
 #                     self.df_info = pd.DataFrame(columns=["date", "time", "tick", "data_saturated", "missed_data", "data_quality_warning"])
                     self.f_mem_csv = open(filename_mem_csv, 'w')
+#                     self.df_mem = pd.DataFrame(columns=["date", "time", "rss", "vms", "shared", "text", "lib", "data", "dirty", "uss", "pss", "swap", "remark"])
 
                     if not self.f_daq_run_prctim_csv.closed:
                         self.f_daq_run_prctim_csv.write('date time processing_time[ms] remark\n')
@@ -504,7 +558,8 @@ class BluetoothServer:
         else:
             dataframe.to_csv(file_path, mode='a', header=False, index=False)
 
-    def write_data_to_app(self, data, data_type):
+#     def write_data_to_app(self, data, data_type):
+    async def write_data_to_app(self, data, data_type):
         # print(data + ' ' + data_type)
 
 #         if data_type == 'heart rate':
@@ -540,6 +595,11 @@ class BluetoothServer:
                 self.is_first_write_data_to_app_call_for_hr = False
             else:
                 self.df_hr = pd.concat([self.df_hr, new_data_df], axis=0, ignore_index=True)
+            columns_lst_for_hr = self.df_hr.columns.values.tolist()
+            if self.df_hr.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
+                await self.write_to_csv(self.df_hr, self.filename_hr_csv)
+                self.df_hr = pd.DataFrame(columns=columns_lst_for_hr)
+            await asyncio.sleep(0.01)
 
         elif data_type == 'breath rate':
             string = ' RR ' + str(data) + ' '
@@ -560,6 +620,11 @@ class BluetoothServer:
                 self.is_first_write_data_to_app_call_for_rr = False
             else:
                 self.df_rr = pd.concat([self.df_rr, new_data_df], axis=0, ignore_index=True)
+            columns_lst_for_rr = self.df_rr.columns.values.tolist()
+            if self.df_rr.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
+                await self.write_to_csv(self.df_rr, self.filename_rr_csv)
+                self.df_rr = pd.DataFrame(columns=columns_lst_for_rr)
+            await asyncio.sleep(0.01)
 
         elif data_type == 'real time breath':
             string = ' RTB ' + str(data) + ' '
@@ -579,6 +644,11 @@ class BluetoothServer:
                 self.is_first_write_data_to_app_call_for_rtb = False
             else:
                 self.df_rtb = pd.concat([self.df_rtb, new_data_df], axis=0, ignore_index=True)
+            columns_lst_for_rtb = self.df_rtb.columns.values.tolist()
+            if self.df_rtb.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
+                await self.write_to_csv(self.df_rtb, self.filename_rtb_csv)
+                self.df_rtb = pd.DataFrame(columns=columns_lst_for_rtb)
+            await asyncio.sleep(0.01)
 
         elif data_type == 'blood pressure':
             data_ = data.split()
@@ -605,6 +675,11 @@ class BluetoothServer:
                 self.is_first_write_data_to_app_call_for_bp = False
             else:
                 self.df_bp = pd.concat([self.df_bp, new_data_df], axis=0, ignore_index=True)
+            columns_lst_for_bp = self.df_bp.columns.values.tolist()
+            if self.df_bp.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
+                await self.write_to_csv(self.df_bp, self.filename_bp_csv)
+                self.df_bp = pd.DataFrame(columns=columns_lst_for_bp)
+            await asyncio.sleep(0.01)
 
 #         if data_type == 'heart rate':
 #             msg = 'write_data_to_app:after_heart_rate'
@@ -640,6 +715,11 @@ class BluetoothServer:
                 self.is_first_write_data_only_to_storage_call_for_raw = False
             else:
                 self.df_raw = pd.concat([self.df_raw, new_data_df], axis=0, ignore_index=True)
+            columns_lst_for_raw = self.df_raw.columns.values.tolist()
+            if self.df_raw.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
+                await self.write_to_csv(self.df_raw, self.filename_raw_csv)
+                self.df_raw = pd.DataFrame(columns=columns_lst_for_raw)
+            await asyncio.sleep(0.01)
 
         elif data_type == 'bpint':
             data_lst = data_to_write.split(',')
@@ -660,6 +740,11 @@ class BluetoothServer:
                 self.is_first_write_data_only_to_storage_call_for_bpint = False
             else:
                 self.df_bpint = pd.concat([self.df_bpint, new_data_df], axis=0, ignore_index=True)
+            columns_lst_for_bpint = self.df_bpint.columns.values.tolist()
+            if self.df_bpint.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
+                await self.write_to_csv(self.df_bpint, self.filename_bpint_csv)
+                self.df_bpint = pd.DataFrame(columns=columns_lst_for_bpint)
+            await asyncio.sleep(0.01)
 
 #         elif data_type == 'daq_run_prctim' or data_type == 'sgp_hre_prctim' or data_type == 'sbp_rre_prctim' or data_type == 'sgp_bpe_prctim':
 #             data_lst = data_to_write.split()
@@ -671,13 +756,29 @@ class BluetoothServer:
 #             }
 #             new_data_df = pd.DataFrame(new_data)
 #             if data_type == 'daq_run_prctim':
-#                 self.df_daq_run_prctim = pd.concat([self.df_daq_run_prctim, new_data_df], axis=0, ignore_index=True)
+#                 if self.is_first_write_data_only_to_storage_call_for_daq_run_prctim:
+#                     self.df_daq_run_prctim = new_data_df
+#                     self.is_first_write_data_only_to_storage_call_for_daq_run_prctim = False
+#                 else:
+#                     self.df_daq_run_prctim = pd.concat([self.df_daq_run_prctim, new_data_df], axis=0, ignore_index=True)
 #             elif data_type == 'sgp_hre_prctim':
-#                 self.df_sgp_hre_prctim = pd.concat([self.df_sgp_hre_prctim, new_data_df], axis=0, ignore_index=True)
+#                 if self.is_first_write_data_only_to_storage_call_for_sgp_hre_prctim:
+#                     self.df_sgp_hre_prctim = new_data_df
+#                     self.is_first_write_data_only_to_storage_call_for_sgp_hre_prctim = False
+#                 else:
+#                     self.df_sgp_hre_prctim = pd.concat([self.df_sgp_hre_prctim, new_data_df], axis=0, ignore_index=True)
 #             elif data_type == 'sgp_rre_prctim':
-#                 self.df_sgp_rre_prctim = pd.concat([self.df_sgp_rre_prctim, new_data_df], axis=0, ignore_index=True)
+#                 if self.is_first_write_data_only_to_storage_call_for_sgp_rre_prctim:
+#                     self.df_sgp_rre_prctim = new_data_df
+#                     self.is_first_write_data_only_to_storage_call_for_sgp_rre_prctim = False
+#                 else:
+#                     self.df_sgp_rre_prctim = pd.concat([self.df_sgp_rre_prctim, new_data_df], axis=0, ignore_index=True)
 #             elif data_type == 'sgp_bpe_prctim':
-#                 self.df_sgp_bpe_prctim = pd.concat([self.df_sgp_bpe_prctim, new_data_df], axis=0, ignore_index=True)
+#                 if self.is_first_write_data_only_to_storage_call_for_sgp_bpe_prctim:
+#                     self.df_sgp_bpe_prctim = new_data_df
+#                     self.is_first_write_data_only_to_storage_call_for_sgp_bpe_prctim = False
+#                 else:
+#                     self.df_sgp_bpe_prctim = pd.concat([self.df_sgp_bpe_prctim, new_data_df], axis=0, ignore_index=True)
 
 #         elif data_type == 'info':
 #             data_lst = data_to_write.split()
@@ -690,7 +791,11 @@ class BluetoothServer:
 #                 "data_quality_warning": [data_lst[3]]
 #             }
 #             new_data_df = pd.DataFrame(new_data)
-#             self.df_info = pd.concat([self.df_info, new_data_df], axis=0, ignore_index=True)
+#             if self.is_first_write_data_only_to_storage_call_for_info:
+#                 self.df_info = new_data_df
+#                 self.is_first_write_data_only_to_storage_call_for_info = False
+#             else:
+#                 self.df_info = pd.concat([self.df_info, new_data_df], axis=0, ignore_index=True)
 
         elif data_type == 'hea6':
             data_lst = data_to_write.split(',')
@@ -712,6 +817,11 @@ class BluetoothServer:
                 self.is_first_write_data_only_to_storage_call_for_hea6 = False
             else:
                 self.df_hea6 = pd.concat([self.df_hea6, new_data_df], axis=0, ignore_index=True)
+            columns_lst_for_hea6 = self.df_hea6.columns.values.tolist()
+            if self.df_hea6.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
+                await self.write_to_csv(self.df_hea6, self.filename_hea6_csv)
+                self.df_hea6 = pd.DataFrame(columns=columns_lst_for_hea6)
+            await asyncio.sleep(0.01)
 
         elif data_type[0:3] == 'hea':
             new_data = {
@@ -769,12 +879,10 @@ class BluetoothServer:
                     self.is_first_write_data_only_to_storage_call_for_hea3 = False
                 else:
                     self.df_hea3 = pd.concat([self.df_hea3, new_data_df], axis=0, ignore_index=True)
+                columns_lst_for_hea3 = self.df_hea3.columns.values.tolist()
                 if self.df_hea3.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
                     await self.write_to_csv(self.df_hea3, self.filename_hea3_csv)
-                    columns_list_for_hea3 = ["date", "time"]
-                    for _, idx in enumerate(self.idx_lst_for_hea3):
-                        columns_list_for_hea3.append("FFT_averaged[" + str(idx) + "]")
-                    df = pd.DataFrame(columns=columns_list_for_hea3)
+                    self.df_hea3 = pd.DataFrame(columns=columns_lst_for_hea3)
                 await asyncio.sleep(0.01)
 #             elif data_type == 'hea4':
 #                 self.df_hea4 = pd.concat([self.df_hea4, new_data_df], axis=0, ignore_index=True)
@@ -790,18 +898,33 @@ class BluetoothServer:
                     self.is_first_write_data_only_to_storage_call_for_hea9 = False
                 else:
                     self.df_hea9 = pd.concat([self.df_hea9, new_data_df], axis=0, ignore_index=True)
+                columns_lst_for_hea9 = self.df_hea9.columns.values.tolist()
+                if self.df_hea9.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
+                    await self.write_to_csv(self.df_hea9, self.filename_hea9_csv)
+                    self.df_hea9 = pd.DataFrame(columns=columns_lst_for_hea9)
+                await asyncio.sleep(0.01)
             elif data_type == 'hea10':
                 if self.is_first_write_data_only_to_storage_call_for_hea10:
                     self.df_hea10 = new_data_df
                     self.is_first_write_data_only_to_storage_call_for_hea10 = False
                 else:
                     self.df_hea10 = pd.concat([self.df_hea10, new_data_df], axis=0, ignore_index=True)
+                columns_lst_for_hea10 = self.df_hea10.columns.values.tolist()
+                if self.df_hea10.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
+                    await self.write_to_csv(self.df_hea10, self.filename_hea10_csv)
+                    self.df_hea10 = pd.DataFrame(columns=columns_lst_for_hea10)
+                await asyncio.sleep(0.01)
             elif data_type == 'hea11':
                 if self.is_first_write_data_only_to_storage_call_for_hea11:
                     self.df_hea11 = new_data_df
                     self.is_first_write_data_only_to_storage_call_for_hea11 = False
                 else:
                     self.df_hea11 = pd.concat([self.df_hea11, new_data_df], axis=0, ignore_index=True)
+                columns_lst_for_hea11 = self.df_hea11.columns.values.tolist()
+                if self.df_hea11.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
+                    await self.write_to_csv(self.df_hea11, self.filename_hea11_csv)
+                    self.df_hea11 = pd.DataFrame(columns=columns_lst_for_hea11)
+                await asyncio.sleep(0.01)
 
         elif data_type == 'sch':
             data_lst = data_to_write.split()
@@ -831,6 +954,11 @@ class BluetoothServer:
                 self.is_first_write_data_only_to_storage_call_for_sch = False
             else:
                 self.df_sch = pd.concat([self.df_sch, new_data_df], axis=0, ignore_index=True)
+            columns_lst_for_sch = self.df_sch.columns.values.tolist()
+            if self.df_sch.memory_usage(deep=True).sum() > 10 * 1024:  # 10KB
+                await self.write_to_csv(self.df_sch, self.filename_sch_csv)
+                self.df_sch = pd.DataFrame(columns=columns_lst_for_sch)
+            await asyncio.sleep(0.01)
 
 #         msg = 'write_data_only_to_storage:after_' + data_type
 #         sv.print_memory_full_info(self.f_mem_csv, msg)

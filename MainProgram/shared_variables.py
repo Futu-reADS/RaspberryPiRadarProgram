@@ -1,5 +1,6 @@
 import datetime
 import psutil
+# import asyncio
 
 list_of_variables_for_threads = {}
 
@@ -34,5 +35,6 @@ def print_memory_full_info(f_csv, msg):
 #     if list_of_variables_for_threads["run_measurement"]:
 #         if list_of_variables_for_threads["is_measuring"]:
 #             elpsd_tim = cur_tim - prv_tim
-#             bluetooth_server.write_data_only_to_storage(str(cur_tim) + ' ' + str(elpsd_tim.total_seconds() * 1000) + ' ' + msg, data_type)
+# #             bluetooth_server.write_data_only_to_storage(str(cur_tim) + ' ' + str(elpsd_tim.total_seconds() * 1000) + ' ' + msg, data_type)
+#             asyncio.run(bluetooth_server.write_data_only_to_storage(str(cur_tim) + ' ' + str(elpsd_tim.total_seconds() * 1000) + ' ' + msg, data_type))
 #     return cur_tim

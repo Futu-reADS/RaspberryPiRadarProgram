@@ -281,8 +281,10 @@ class DataAcquisition(threading.Thread):
                         # Send real time breathing amplitude to the application
 #                         if self.go:
                         if sv.list_of_variables_for_threads["is_measuring"]:
-                            self.bluetooth_server.write_data_to_app(
-                                tracked_data["real time breathing amplitude"], 'real time breath')
+#                             self.bluetooth_server.write_data_to_app(
+#                                 tracked_data["real time breathing amplitude"], 'real time breath')
+                            asyncio.run(self.bluetooth_server.write_data_to_app(
+                                tracked_data["real time breathing amplitude"], 'real time breath'))
                         # self.bluetooth_server.write_data_to_app(
                         #    bandpass_filtered_data_HR, 'real time breath')
 
@@ -356,7 +358,8 @@ class DataAcquisition(threading.Thread):
 #                                        str(info[0]["data_saturated"]) + ' ' + \
 #                                        str(info[0]["missed_data"]) + ' ' + \
 #                                        str(info[0]["data_quality_warning"])
-#                 self.bluetooth_server.write_data_only_to_storage(data_to_write_in_daq, 'info')
+# #                 self.bluetooth_server.write_data_only_to_storage(data_to_write_in_daq, 'info')
+#                 asyncio.run(self.bluetooth_server.write_data_only_to_storage(data_to_write_in_daq, 'info'))
         return data
 
     def tracking(self, data):
