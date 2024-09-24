@@ -1,6 +1,7 @@
 import datetime
 import psutil
 # import asyncio
+import pandas as pd
 
 list_of_variables_for_threads = {}
 
@@ -13,7 +14,8 @@ def clc_elpsd_tim(f_csv, prv_tim, msg):
                 f_csv.write(str(cur_tim) + ' ' + str(elpsd_tim.total_seconds() * 1000) + ' ' + msg + '\n')
     return cur_tim
 
-def print_memory_full_info(f_csv, msg):
+# def print_memory_full_info(f_csv, msg):
+def print_memory_full_info(bluetooth_server, f_csv, msg):
     if not hasattr(print_memory_full_info, "prv_tim"):
         print_memory_full_info.prv_tim = datetime.datetime.now()  # Initialize
     cur_tim = datetime.datetime.now()
@@ -25,8 +27,25 @@ def print_memory_full_info(f_csv, msg):
             elif not f_csv.closed:
                 interval_time = cur_tim - print_memory_full_info.prv_tim
                 if interval_time.seconds >= 20:
-                    print('print_memory_full_info : interval_time = ' + str(interval_time))
-                    f_csv.write(str(cur_tim) + ' ' + str(mem_info.rss) + ' ' + str(mem_info.vms) + ' ' + str(mem_info.shared) + ' ' + str(mem_info.text) + ' ' + str(mem_info.lib) + ' ' + \
+                    df_hr_mem_usg = bluetooth_server.df_hr.memory_usage(deep=True).sum()
+                    df_rr_mem_usg = bluetooth_server.df_rr.memory_usage(deep=True).sum()
+                    df_rtb_mem_usg = bluetooth_server.df_rtb.memory_usage(deep=True).sum()
+                    df_raw_mem_usg = bluetooth_server.df_raw.memory_usage(deep=True).sum()
+                    df_bp_mem_usg = bluetooth_server.df_bp.memory_usage(deep=True).sum()
+                    df_bpint_mem_usg = bluetooth_server.df_bpint.memory_usage(deep=True).sum()
+                    df_hea3_mem_usg = bluetooth_server.df_hea3.memory_usage(deep=True).sum()
+                    df_hea9_mem_usg = bluetooth_server.df_hea9.memory_usage(deep=True).sum()
+                    df_hea10_mem_usg = bluetooth_server.df_hea10.memory_usage(deep=True).sum()
+                    df_hea11_mem_usg = bluetooth_server.df_hea11.memory_usage(deep=True).sum()
+                    df_hea6_mem_usg = bluetooth_server.df_hea6.memory_usage(deep=True).sum()
+                    df_sch_mem_usg = bluetooth_server.df_sch.memory_usage(deep=True).sum()
+                    df_total_mem_usg = df_hr_mem_usg + df_rr_mem_usg + df_rtb_mem_usg + df_raw_mem_usg + df_bp_mem_usg + df_bpint_mem_usg + \
+                                       df_hea3_mem_usg + df_hea9_mem_usg + df_hea10_mem_usg + df_hea11_mem_usg + df_hea6_mem_usg + df_sch_mem_usg
+                    f_csv.write(str(cur_tim) + ' ' + str(df_hr_mem_usg) + ' ' + str(df_rr_mem_usg) + ' ' + str(df_rtb_mem_usg) + ' ' + str(df_raw_mem_usg) + ' ' + \
+                                str(df_bp_mem_usg) + ' ' + str(df_bpint_mem_usg) + ' ' + \
+                                str(df_hea3_mem_usg) + ' ' + str(df_hea9_mem_usg) + ' ' + str(df_hea10_mem_usg) + ' ' + str(df_hea11_mem_usg) + ' ' + str(df_hea6_mem_usg) + ' ' + \
+                                str(df_sch_mem_usg) + ' ' + str(df_total_mem_usg) + ' ' + \
+                                str(mem_info.rss) + ' ' + str(mem_info.vms) + ' ' + str(mem_info.shared) + ' ' + str(mem_info.text) + ' ' + str(mem_info.lib) + ' ' + \
                                 str(mem_info.data) + ' ' + str(mem_info.dirty) + ' ' + str(mem_info.uss) + ' ' + str(mem_info.pss) + ' ' + str(mem_info.swap) + ' ' + msg + '\n')
                     print_memory_full_info.prv_tim = cur_tim
 
