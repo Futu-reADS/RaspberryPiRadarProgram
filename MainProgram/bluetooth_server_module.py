@@ -439,7 +439,10 @@ class BluetoothServer:
                         key_name = "FFT_averaged[" + str(idx) + "]"
                         columns_lst_for_hea3.append(key_name)
                     self.df_hea3 = pd.DataFrame(columns=columns_lst_for_hea3)
-                    dt_now = sv.list_of_variables_for_threads["current_date_time"]
+                    if sv.list_of_variables_for_threads["current_date_time"] is None:
+                        dt_now = datetime.datetime.now()
+                    else:
+                        dt_now = sv.list_of_variables_for_threads["current_date_time"]
                     dt_now_lst = str(dt_now).split()
                     new_data = {
                         "date": [dt_now_lst[0]],
@@ -582,7 +585,10 @@ class BluetoothServer:
 #             msg = 'write_data_to_app:before_blood_pressure'
 #         sv.print_memory_full_info(self.f_mem_csv, msg)
 
-        dt_now = sv.list_of_variables_for_threads["current_date_time"]
+        if sv.list_of_variables_for_threads["current_date_time"] is None:
+            dt_now = datetime.datetime.now()
+        else:
+            dt_now = sv.list_of_variables_for_threads["current_date_time"]
 
         if data_type == 'heart rate':
             string = ' HR ' + str(data) + ' '
@@ -710,7 +716,10 @@ class BluetoothServer:
 #         msg = 'write_data_only_to_storage:before_' + data_type
 #         sv.print_memory_full_info(self.f_mem_csv, msg)
 
-        dt_now = sv.list_of_variables_for_threads["current_date_time"]
+        if sv.list_of_variables_for_threads["current_date_time"] is None:
+            dt_now = datetime.datetime.now()
+        else:
+            dt_now = sv.list_of_variables_for_threads["current_date_time"]
         dt_now_lst = str(dt_now).split()
 
         if data_type == 'raw':

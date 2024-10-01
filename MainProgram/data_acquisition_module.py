@@ -327,25 +327,37 @@ class DataAcquisition(threading.Thread):
 #             info, data = self.client.get_next()
 #             self.run_times = info[-1]['sequence_number']
 
-        if self.is_first_get_data_call == True:
-            self.reference_date_time = datetime.datetime.now()
-            self.reference_tick_value = info[0]["tick"]
-            self.current_date_time = self.reference_date_time
-            self.is_first_get_data_call = False
-        else:
-            if info[0]["tick"] < self.reference_tick_value:
-                tick_diff = 0xFFFFFFFF + info[0]["tick"] - self.reference_tick_value
-            else:
-                tick_diff = info[0]["tick"] - self.reference_tick_value
-            self.current_date_time = self.reference_date_time + datetime.timedelta(microseconds=tick_diff)
-            if info[0]["tick"] < self.reference_tick_value:
-                self.reference_date_time = self.current_date_time
-                self.reference_tick_value = info[0]["tick"]
-
-        sv.list_of_variables_for_threads["current_date_time"] = self.current_date_time
-
         if sv.list_of_variables_for_threads["run_measurement"]:
             if sv.list_of_variables_for_threads["is_measuring"]:
+                if self.is_first_get_data_call == True:
+                    self.reference_date_time = datetime.datetime.now()
+                    self.reference_tick_value = info[0]["tick"]
+                    self.current_date_time = self.reference_date_time
+                    self.is_first_get_data_call = False
+                    self.f_info2_csv =  sv.list_of_variables_for_threads["f_info2_csv"]
+                    if not self.f_info2_csv.closed:
+                        dt_now = datetime.datetime.now()
+                        self.f_info2_csv.write(str(dt_now) + ' ' + \
+                                              str(self.reference_date_time) + ' ' + \
+                                              str(self.reference_tick_value) + '\n')
+                else:
+                    if info[0]["tick"] < self.reference_tick_value:
+                        tick_diff = 0xFFFFFFFF + info[0]["tick"] - self.reference_tick_value
+                    else:
+                        tick_diff = info[0]["tick"] - self.reference_tick_value
+                    self.current_date_time = self.reference_date_time + datetime.timedelta(microseconds=tick_diff)
+                    if info[0]["tick"] < self.reference_tick_value:
+                        self.reference_date_time = self.current_date_time
+                        self.reference_tick_value = info[0]["tick"]
+                        self.f_info2_csv =  sv.list_of_variables_for_threads["f_info2_csv"]
+                        if not self.f_info2_csv.closed:
+                            dt_now = datetime.datetime.now()
+                            self.f_info2_csv.write(str(dt_now) + ' ' + \
+                                                  str(self.reference_date_time) + ' ' + \
+                                                  str(self.reference_tick_value) + '\n')
+
+                sv.list_of_variables_for_threads["current_date_time"] = self.current_date_time
+
                 self.f_info_csv =  sv.list_of_variables_for_threads["f_info_csv"]
                 if not self.f_info_csv.closed:
                     dt_now = self.current_date_time
