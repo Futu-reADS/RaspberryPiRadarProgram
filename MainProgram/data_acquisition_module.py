@@ -176,7 +176,7 @@ class DataAcquisition(threading.Thread):
 #         self.f_raw_csv =  sv.list_of_variables_for_threads["f_raw_csv"]
 #         self.f_iq_csv  = list_of_variables_for_threads["f_iq_csv"]
         self.f_daq_run_prctim_csv =  sv.list_of_variables_for_threads["f_daq_run_prctim_csv"]
-        self.is_first_get_data_call = True
+        self.is_first_get_data_call_in_measurement = True
         self.reference_date_time = datetime.datetime.now()
         self.reference_tick_value = 0
         self.current_date_time = datetime.datetime.now()
@@ -329,11 +329,11 @@ class DataAcquisition(threading.Thread):
 
         if sv.list_of_variables_for_threads["run_measurement"]:
             if sv.list_of_variables_for_threads["is_measuring"]:
-                if self.is_first_get_data_call == True:
+                if self.is_first_get_data_call_in_measurement == True:
                     self.reference_date_time = datetime.datetime.now()
                     self.reference_tick_value = info[0]["tick"]
                     self.current_date_time = self.reference_date_time
-                    self.is_first_get_data_call = False
+                    self.is_first_get_data_call_in_measurement = False
                     self.f_info2_csv =  sv.list_of_variables_for_threads["f_info2_csv"]
                     if not self.f_info2_csv.closed:
                         dt_now = datetime.datetime.now()
