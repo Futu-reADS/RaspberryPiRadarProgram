@@ -14,6 +14,7 @@ import shared_variables as sv
 import pandas as pd
 import numpy as np
 # import asyncio
+import subprocess
 
 
 class BluetoothServer:
@@ -113,6 +114,31 @@ class BluetoothServer:
 
         self.df_memusg_lmt = 10 * 1024
 
+        # Get mount points for devices that start with /dev/sd and are not /dev/sda
+        self.filepath = self.get_mount_point_excluding_sda()
+
+        if self.filepath:
+            print(f'The mount point of the USB memory for recording measurement results is {self.filepath}.')
+        else:
+            print(f'The USB memory for recording measurement results is not mounted.')
+
+    def get_mount_point_excluding_sda(self):
+        # Run the df command and get the output
+        result = subprocess.run(['df'], stdout=subprocess.PIPE)
+        output = result.stdout.decode('utf-8')
+
+        # Split the output into lines
+        lines = output.split('\n')
+
+        # Check each line for a device mount point that starts with /dev/sd and is not /dev/sda
+        for line in lines:
+            if line.startswith('/dev/sd') and not line.startswith('/dev/sda'):
+                # Split the line into columns and return the mount point (the last column)
+                columns = line.split()
+                return columns[-1] + '/'
+
+        return None
+
     def app_data(self):  # The main loop which takes data from processing and sends data to all clients
         while self.go:
             pass
@@ -197,7 +223,7 @@ class BluetoothServer:
         print(c)
         print(self.address_list[-1])
         try:
-            filepath = '/media/futu-re/05E2-E73B/'
+#             filepath = '/media/futu-re/05E2-E73B/'
             date_time = ''
 #             while self.go:
             while self.terminate_yet:
@@ -278,13 +304,13 @@ class BluetoothServer:
                         print(filename_info_csv + " is closed")
                         print(filename_mem_csv + " is closed")
 
-                        os.system("sudo chown futu-re:futu-re " + filepath + date_time + "/log*.csv")
+                        os.system("sudo chown futu-re:futu-re " + self.filepath + date_time + "/log*.csv")
 
-                        # 計測終了時刻記録処理
+                        # Measurement end time recording process
                         timestamp = datetime.datetime.now()
                         date_time = timestamp.strftime('%Y%m%d_%H%M%S')
                         en_dt_tm = date_time.split('_')
-                        self.f_rec_csv = open(filepath + self.filename_rec_csv, 'a')
+                        self.f_rec_csv = open(self.filepath + self.filename_rec_csv, 'a')
                         if not self.f_rec_csv.closed:
                             self.f_rec_csv.write(en_dt_tm[0] + ' ' + en_dt_tm[1] + ' user' + str(self.user_serial_number) + ' end\n')
                         self.f_rec_csv.close()
@@ -383,39 +409,40 @@ class BluetoothServer:
 
                     self.user_serial_number = data[13:]
 
-                    # データフレーム作成処理
+                    # Data frame creation process
+
                     # Get current time
                     timestamp = datetime.datetime.now()
 
                     date_time = timestamp.strftime('%Y%m%d_%H%M%S')
-                    if not os.path.exists(filepath + date_time):
-                        os.mkdir(filepath + date_time)
+                    if not os.path.exists(self.filepath + date_time):
+                        os.mkdir(self.filepath + date_time)
 
-                    self.filename_hr_csv = filepath + date_time + '/log_hr_' + date_time + '.csv'  # CSV file for heart rate
-                    self.filename_rr_csv = filepath + date_time + '/log_rr_' + date_time + '.csv'  # CSV file for respiration rate
-                    self.filename_rtb_csv = filepath + date_time + '/log_rtb_' + date_time + '.csv'  # CSV file for real time breath
-                    self.filename_bp_csv = filepath + date_time + '/log_bp_' + date_time + '.csv'  # CSV file for blood pressure
+                    self.filename_hr_csv = self.filepath + date_time + '/log_hr_' + date_time + '.csv'  # CSV file for heart rate
+                    self.filename_rr_csv = self.filepath + date_time + '/log_rr_' + date_time + '.csv'  # CSV file for respiration rate
+                    self.filename_rtb_csv = self.filepath + date_time + '/log_rtb_' + date_time + '.csv'  # CSV file for real time breath
+                    self.filename_bp_csv = self.filepath + date_time + '/log_bp_' + date_time + '.csv'  # CSV file for blood pressure
 
-                    self.filename_raw_csv = filepath + date_time + '/log_raw_' + date_time + '.csv'  # CSV file for tracked data
-                    self.filename_bpint_csv = filepath + date_time + '/log_bpint_' + date_time + '.csv'  # CSV file for blood_pressure() internal data
-                    self.filename_hea6_csv = filepath + date_time + '/log_hea6_' + date_time + '.csv'  # CSV file for heart_rate() internal data (found_peak_index)  # for debug
-                    self.filename_hea3_csv = filepath + date_time + '/log_hea3_' + date_time + '.csv'  # CSV file for heart_rate() internal data (FFT_averaged)  # for debug
-                    self.filename_hea9_csv = filepath + date_time + '/log_hea9_' + date_time + '.csv'  # CSV file for heart_rate() internal data (close_peaks)  # for debug
-                    self.filename_hea10_csv = filepath + date_time + '/log_hea10_' + date_time + '.csv'  # CSV file for heart_rate() internal data (close_disturbing_peaks)  # for debug
-                    self.filename_hea11_csv = filepath + date_time + '/log_hea11_' + date_time + '.csv'  # CSV file for heart_rate() internal data (old_heart_freq_list)  # for debug
-                    self.filename_sch_csv = filepath + date_time + '/log_sch_' + date_time + '.csv'  # CSV file for schmittTrigger() internal data
+                    self.filename_raw_csv = self.filepath + date_time + '/log_raw_' + date_time + '.csv'  # CSV file for tracked data
+                    self.filename_bpint_csv = self.filepath + date_time + '/log_bpint_' + date_time + '.csv'  # CSV file for blood_pressure() internal data
+                    self.filename_hea6_csv = self.filepath + date_time + '/log_hea6_' + date_time + '.csv'  # CSV file for heart_rate() internal data (found_peak_index)  # for debug
+                    self.filename_hea3_csv = self.filepath + date_time + '/log_hea3_' + date_time + '.csv'  # CSV file for heart_rate() internal data (FFT_averaged)  # for debug
+                    self.filename_hea9_csv = self.filepath + date_time + '/log_hea9_' + date_time + '.csv'  # CSV file for heart_rate() internal data (close_peaks)  # for debug
+                    self.filename_hea10_csv = self.filepath + date_time + '/log_hea10_' + date_time + '.csv'  # CSV file for heart_rate() internal data (close_disturbing_peaks)  # for debug
+                    self.filename_hea11_csv = self.filepath + date_time + '/log_hea11_' + date_time + '.csv'  # CSV file for heart_rate() internal data (old_heart_freq_list)  # for debug
+                    self.filename_sch_csv = self.filepath + date_time + '/log_sch_' + date_time + '.csv'  # CSV file for schmittTrigger() internal data
 
-                    filename_daq_run_prctim_csv = filepath + date_time + '/log_daq_run_prctim_' + date_time + '.csv'  # CSV file for recording processing time of run()@data_acquisition_module.py
+                    filename_daq_run_prctim_csv = self.filepath + date_time + '/log_daq_run_prctim_' + date_time + '.csv'  # CSV file for recording processing time of run()@data_acquisition_module.py
 #                     self.filename_daq_run_prctim_csv = filepath + date_time + '/log_daq_run_prctim_' + date_time + '.csv'  # CSV file for recording processing time of run()@data_acquisition_module.py
-                    filename_sgp_hre_prctim_csv = filepath + date_time + '/log_sgp_hre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of heart_rate()@signal_processing_module.py
+                    filename_sgp_hre_prctim_csv = self.filepath + date_time + '/log_sgp_hre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of heart_rate()@signal_processing_module.py
 #                     self.filename_sgp_hre_prctim_csv = filepath + date_time + '/log_sgp_hre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of heart_rate()@signal_processing_module.py
-                    filename_sgp_rre_prctim_csv = filepath + date_time + '/log_sgp_rre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of schmittTrigger()@signal_processing_module.py
+                    filename_sgp_rre_prctim_csv = self.filepath + date_time + '/log_sgp_rre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of schmittTrigger()@signal_processing_module.py
 #                     self.filename_sgp_rre_prctim_csv = filepath + date_time + '/log_sgp_rre_prctim_' + date_time + '.csv'  # CSV file for recording processing time of schmittTrigger()@signal_processing_module.py
-                    filename_sgp_bpe_prctim_csv = filepath + date_time + '/log_sgp_bpe_prctim_' + date_time + '.csv'  # CSV file for recording processing time of blood_pressure()@signal_processing_module.py
+                    filename_sgp_bpe_prctim_csv = self.filepath + date_time + '/log_sgp_bpe_prctim_' + date_time + '.csv'  # CSV file for recording processing time of blood_pressure()@signal_processing_module.py
 #                     self.filename_sgp_bpe_prctim_csv = filepath + date_time + '/log_sgp_bpe_prctim_' + date_time + '.csv'  # CSV file for recording processing time of blood_pressure()@signal_processing_module.py
-                    filename_info_csv = filepath + date_time + '/log_info_' + date_time + '.csv'  # CSV file for recording "info" variable value of get_data()@data_acquisition_module.py
+                    filename_info_csv = self.filepath + date_time + '/log_info_' + date_time + '.csv'  # CSV file for recording "info" variable value of get_data()@data_acquisition_module.py
 #                     self.filename_info_csv = filepath + date_time + '/log_info_' + date_time + '.csv'  # CSV file for recording "info" variable value of get_data()@data_acquisition_module.py
-                    filename_mem_csv = filepath + date_time + '/log_mem_' + date_time + '.csv'  # CSV file for recording changes in memory usage
+                    filename_mem_csv = self.filepath + date_time + '/log_mem_' + date_time + '.csv'  # CSV file for recording changes in memory usage
 #                     self.filename_mem_csv = filepath + date_time + '/log_mem_' + date_time + '.csv'  # CSV file for recording changes in memory usage
 
                     self.df_hr = pd.DataFrame(columns=["date", "time", "heart_rate", "reliability"])
@@ -523,15 +550,15 @@ class BluetoothServer:
                     sv.list_of_variables_for_threads["f_info_csv"] = self.f_info_csv
                     sv.list_of_variables_for_threads["f_mem_csv"] = self.f_mem_csv
 
-                    # 計測開始時刻記録処理
+                    # Measurement start time recording process
                     st_dt_tm = date_time.split('_')
                     self.filename_rec_csv = 'log_rec_' + st_dt_tm[0] + '.csv'
-                    if not os.path.exists(filepath + self.filename_rec_csv):
-                        self.f_rec_csv = open(filepath + self.filename_rec_csv, 'w')
+                    if not os.path.exists(self.filepath + self.filename_rec_csv):
+                        self.f_rec_csv = open(self.filepath + self.filename_rec_csv, 'w')
                         if not self.f_rec_csv.closed:
                             self.f_rec_csv.write('date time UserID start_or_end\n')
                     else:
-                        self.f_rec_csv = open(filepath + self.filename_rec_csv, 'a')
+                        self.f_rec_csv = open(self.filepath + self.filename_rec_csv, 'a')
                     if not self.f_rec_csv.closed:
 #                         self.f_rec_csv.write(st_dt_tm[0] + ' ' + st_dt_tm[1] + ' user' + str(self.user_serial_number) + ' start\n')
                         self.f_rec_csv.write(st_dt_tm[0] + ' ' + st_dt_tm[1] + ' user' + self.user_serial_number + ' start\n')

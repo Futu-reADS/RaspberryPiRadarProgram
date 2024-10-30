@@ -334,12 +334,6 @@ class DataAcquisition(threading.Thread):
                     self.reference_tick_value = info[0]["tick"]
                     self.current_date_time = self.reference_date_time
                     self.is_first_get_data_call_in_measurement = False
-                    self.f_info2_csv =  sv.list_of_variables_for_threads["f_info2_csv"]
-                    if not self.f_info2_csv.closed:
-                        dt_now = datetime.datetime.now()
-                        self.f_info2_csv.write(str(dt_now) + ' ' + \
-                                              str(self.reference_date_time) + ' ' + \
-                                              str(self.reference_tick_value) + '\n')
                 else:
                     if info[0]["tick"] < self.reference_tick_value:
                         tick_diff = 0xFFFFFFFF + info[0]["tick"] - self.reference_tick_value
@@ -349,12 +343,6 @@ class DataAcquisition(threading.Thread):
                     if info[0]["tick"] < self.reference_tick_value:
                         self.reference_date_time = self.current_date_time
                         self.reference_tick_value = info[0]["tick"]
-                        self.f_info2_csv =  sv.list_of_variables_for_threads["f_info2_csv"]
-                        if not self.f_info2_csv.closed:
-                            dt_now = datetime.datetime.now()
-                            self.f_info2_csv.write(str(dt_now) + ' ' + \
-                                                  str(self.reference_date_time) + ' ' + \
-                                                  str(self.reference_tick_value) + '\n')
 
                 sv.list_of_variables_for_threads["current_date_time"] = self.current_date_time
 

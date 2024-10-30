@@ -55,15 +55,10 @@ def main():
     freq = []         # Value is updated in SignalProcessing. Needs to be the same in the whole program
     peak_freq_linspace = []         # Value is updated in SignalProcessing. Needs to be the same in the whole program
     upl_of_old_heart_freq_list = 0         # Value is updated in SignalProcessing. Needs to be the same in the whole program
-    filepath = '/media/futu-re/05E2-E73B/'
 
     # Get current time
     timestamp = datetime.datetime.now()
     date_time = timestamp.strftime('%Y%m%d_%H%M%S')
-    filename_info2_csv = filepath + 'log_info2_' + date_time + '.csv'  # CSV file for recording base tick value and corresponding date and time
-    f_info2_csv = open(filename_info2_csv, 'w')
-    if not f_info2_csv.closed:
-        f_info2_csv.write('date time ref_date ref_time ref_tick\n')
 
     sv.list_of_variables_for_threads = {"HR_filtered_queue": HR_filtered_queue, "HR_final_queue": HR_final_queue,
                                         "RR_filtered_queue": RR_filtered_queue, "RR_final_queue": RR_final_queue,
@@ -88,7 +83,6 @@ def main():
                                         "f_sgp_rre_prctim_csv": None,
                                         "f_sgp_bpe_prctim_csv": None,
                                         "f_info_csv": None,
-                                        "f_info2_csv": f_info2_csv,
                                         "f_mem_csv": None,
                                         "current_date_time": None}
     FFTfreq = [1, 2, 3]
@@ -171,9 +165,6 @@ def main():
     print("signal_processing is closed")
     data_acquisition.join()
     print("data_acquisition is closed")
-
-    f_info2_csv.close()
-    print(filename_info2_csv + " is closed")
 
     if not sv.list_of_variables_for_threads.get('shutdown_yet'):
         print('Shut down succeed')
