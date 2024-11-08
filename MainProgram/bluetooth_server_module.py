@@ -14,7 +14,6 @@ import shared_variables as sv
 import pandas as pd
 import numpy as np
 # import asyncio
-import subprocess
 
 
 class BluetoothServer:
@@ -121,6 +120,8 @@ class BluetoothServer:
             print(f'The mount point of the USB memory for recording measurement results is {self.filepath}.')
         else:
             print(f'The USB memory for recording measurement results is not mounted.')
+            # 計測結果記録用USBメモリが見つからなかった場合、現状はターミナルにメッセージを表示するだけだが、
+            # 最終的には、スマホアプリ画面に通知が表示されるようにしたい。
 
     def get_mount_point_excluding_sda(self):
         # Run the df command and get the output
