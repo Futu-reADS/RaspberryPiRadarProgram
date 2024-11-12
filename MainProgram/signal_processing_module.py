@@ -79,7 +79,8 @@ class SignalProcessing:
         sv.list_of_variables_for_threads["freq"] = freq
         sv.list_of_variables_for_threads["peak_freq_linspace"] = self.peak_freq_linspace
 
-        self.upl_of_old_heart_freq_list = 20  # upper limit of number of elements in old_heart_freq_list
+#         self.upl_of_old_heart_freq_list = 20  # upper limit of number of elements in old_heart_freq_list
+        self.upl_of_old_heart_freq_list = 10  # upper limit of number of elements in old_heart_freq_list
         sv.list_of_variables_for_threads["upl_of_old_heart_freq_list"] = self.upl_of_old_heart_freq_list
 
         self.measurement_start_time =  sv.list_of_variables_for_threads["measurement_start_time"]
@@ -314,11 +315,11 @@ class SignalProcessing:
                             self.bluetooth_server.write_data_only_to_storage(old_heart_freq_list, 'hea11')
 #                             asyncio.run(self.bluetooth_server.write_data_only_to_storage(old_heart_freq_list, 'hea11'))
 
-#                             if np.abs(np.mean(old_heart_freq_list[
-#                                               0:-2]) - found_heart_freq) > 0.1:  # too big change, probably noise or other disruptions
+                            if np.abs(np.mean(old_heart_freq_list[
+                                              0:-2]) - found_heart_freq) > 0.1:  # too big change, probably noise or other disruptions
 #                             if np.abs(np.mean(old_heart_freq_list[0:-2]) - found_heart_freq) > 0.05 \
-                            if np.abs(np.mean(old_heart_freq_list[0:-2]) - found_heart_freq) > 0.1 \
-                                and len(old_heart_freq_list) >= self.upl_of_old_heart_freq_list:  # too big change, probably noise or other disruptions (except until old_heart_freq_list is filled with measured values.)
+#                             if np.abs(np.mean(old_heart_freq_list[0:-2]) - found_heart_freq) > 0.1 \
+#                                 and len(old_heart_freq_list) >= self.upl_of_old_heart_freq_list:  # too big change, probably noise or other disruptions (except until old_heart_freq_list is filled with measured values.)
                                 found_heart_freq = np.mean(old_heart_freq_list)
                                 #print('Too big change, probably noise or other disruptions, old:', old_heart_freq_list[-1])
 
