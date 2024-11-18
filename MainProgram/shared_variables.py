@@ -1,7 +1,6 @@
 import datetime
 import psutil
-# import asyncio
-import pandas as pd
+import os
 
 list_of_variables_for_threads = {}
 
@@ -14,7 +13,6 @@ def clc_elpsd_tim(f_csv, prv_tim, msg):
                 f_csv.write(str(cur_tim) + ' ' + str(elpsd_tim.total_seconds() * 1000) + ' ' + msg + '\n')
     return cur_tim
 
-# def print_memory_full_info(f_csv, msg):
 def print_memory_full_info(bluetooth_server, f_csv, msg):
     if not hasattr(print_memory_full_info, "prv_tim"):
         print_memory_full_info.prv_tim = datetime.datetime.now()  # Initialize
@@ -49,11 +47,21 @@ def print_memory_full_info(bluetooth_server, f_csv, msg):
                                 str(mem_info.data) + ' ' + str(mem_info.dirty) + ' ' + str(mem_info.uss) + ' ' + str(mem_info.pss) + ' ' + str(mem_info.swap) + ' ' + msg + '\n')
                     print_memory_full_info.prv_tim = cur_tim
 
-# def clc_elpsd_tim(bluetooth_server, data_type, prv_tim, msg):
-#     cur_tim = datetime.datetime.now()
-#     if list_of_variables_for_threads["run_measurement"]:
-#         if list_of_variables_for_threads["is_measuring"]:
-#             elpsd_tim = cur_tim - prv_tim
-# #             bluetooth_server.write_data_only_to_storage(str(cur_tim) + ' ' + str(elpsd_tim.total_seconds() * 1000) + ' ' + msg, data_type)
-#             asyncio.run(bluetooth_server.write_data_only_to_storage(str(cur_tim) + ' ' + str(elpsd_tim.total_seconds() * 1000) + ' ' + msg, data_type))
-#     return cur_tim
+def save_error_messages_to_a_log_file(kind, msg):
+    timestamp = datetime.datetime.now()
+    date_time = timestamp.strftime('%Y%m%d_%H%M%S')
+    st_dt_tm = date_time.split('_')
+
+    filepath = '/home/futu-re/err_log/'
+    filename_err_csv = 'log_err_' + st_dt_tm[0] + '.csv'
+    if not os.path.exists(filepath + filename_err_csv):
+        f_err_csv = open(filepath + filename_err_csv, 'w')
+        if not f_err_csv.closed:
+            f_err_csv.write('date,time,type of info,comments\n')
+    else:
+        f_err_csv = open(filepath + filename_err_csv, 'a')
+
+    if not f_err_csv.closed:
+        f_err_csv.write(st_dt_tm[0] + ',' + st_dt_tm[1] + ',' + kind + ',' + msg + '\n')
+
+    f_err_csv.close()
