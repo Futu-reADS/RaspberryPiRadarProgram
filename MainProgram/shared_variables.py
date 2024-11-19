@@ -1,6 +1,7 @@
 import datetime
 import psutil
 import os
+import subprocess
 
 list_of_variables_for_threads = {}
 
@@ -47,7 +48,7 @@ def print_memory_full_info(bluetooth_server, f_csv, msg):
                                 str(mem_info.data) + ' ' + str(mem_info.dirty) + ' ' + str(mem_info.uss) + ' ' + str(mem_info.pss) + ' ' + str(mem_info.swap) + ' ' + msg + '\n')
                     print_memory_full_info.prv_tim = cur_tim
 
-def save_error_messages_to_a_log_file(kind, msg):
+def save_error_messages_to_a_log_file(type_of_info, comments):
     timestamp = datetime.datetime.now()
     date_time = timestamp.strftime('%Y%m%d_%H%M%S')
     st_dt_tm = date_time.split('_')
@@ -62,6 +63,23 @@ def save_error_messages_to_a_log_file(kind, msg):
         f_err_csv = open(filepath + filename_err_csv, 'a')
 
     if not f_err_csv.closed:
-        f_err_csv.write(st_dt_tm[0] + ',' + st_dt_tm[1] + ',' + kind + ',' + msg + '\n')
+        f_err_csv.write(st_dt_tm[0] + ',' + st_dt_tm[1] + ',' + type_of_info + ',' + comments + '\n')
 
     f_err_csv.close()
+
+def get_mount_point_excluding_sda():
+    # Run the df command and get the output
+    result = subprocess.run(['df'], stdout=subprocess.PIPE)
+    output = result.stdout.decode('utf-8')
+
+    # Split the output into lines
+    lines = output.split('\n')
+
+    # Check each line for a device mount point that starts with /dev/sd and is not /dev/sda
+    for line in lines:
+        if line.startswith('/dev/sd') and not line.startswith('/dev/sda'):
+            # Split the line into columns and return the mount point (the last column)
+            columns = line.split()
+            return columns[-1] + '/'
+
+    return None

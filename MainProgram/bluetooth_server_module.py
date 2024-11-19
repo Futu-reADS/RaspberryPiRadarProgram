@@ -114,31 +114,8 @@ class BluetoothServer:
         self.df_memusg_lmt = 10 * 1024
 
         # Get mount points for devices that start with /dev/sd and are not /dev/sda
-        self.filepath = self.get_mount_point_excluding_sda()
-
-        if self.filepath:
-            print(f'The mount point of the USB memory for recording measurement results is {self.filepath}.')
-        else:
-            print(f'The USB memory for recording measurement results is not mounted.')
-            # 計測結果記録用USBメモリが見つからなかった場合、現状はターミナルにメッセージを表示するだけだが、
-            # 最終的には、スマホアプリ画面に通知が表示されるようにしたい。
-
-    def get_mount_point_excluding_sda(self):
-        # Run the df command and get the output
-        result = subprocess.run(['df'], stdout=subprocess.PIPE)
-        output = result.stdout.decode('utf-8')
-
-        # Split the output into lines
-        lines = output.split('\n')
-
-        # Check each line for a device mount point that starts with /dev/sd and is not /dev/sda
-        for line in lines:
-            if line.startswith('/dev/sd') and not line.startswith('/dev/sda'):
-                # Split the line into columns and return the mount point (the last column)
-                columns = line.split()
-                return columns[-1] + '/'
-
-        return None
+        self.filepath = sv.get_mount_point_excluding_sda()
+        # Before executing this program, an error check is performed in the calling shell script, so it will be omitted here.
 
     def app_data(self):  # The main loop which takes data from processing and sends data to all clients
         while self.go:
