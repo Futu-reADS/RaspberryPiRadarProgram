@@ -13,7 +13,6 @@ from decimal import Decimal, ROUND_HALF_UP
 
 import filter
 import shared_variables as sv
-# import asyncio
 
 class SignalProcessing:
 
@@ -189,7 +188,6 @@ class SignalProcessing:
                     FFT_averaged = self.mean_of_old_values(FFT_counter)
 
                     self.bluetooth_server.write_data_only_to_storage(FFT_averaged[self.idx_lst_for_hea3[0]:self.idx_lst_for_hea3[-1]+1], 'hea3')
-#                     asyncio.run(self.bluetooth_server.write_data_only_to_storage(FFT_averaged[self.idx_lst_for_hea3[0]:self.idx_lst_for_hea3[-1]+1], 'hea3'))
 
                     dt_tmp = sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"], dt_tmp, "calculate_FFT_averaged")
 #                     dt_tmp = sv.clc_elpsd_tim(self.bluetooth_server, "sgp_hre_prctim", dt_tmp, "calculate_FFT_averaged")
@@ -255,10 +253,8 @@ class SignalProcessing:
 #                             self.bluetooth_server.write_data_only_to_storage(self.peak_weighted, 'hea8')
 
                             self.bluetooth_server.write_data_only_to_storage(close_peaks, 'hea9')
-#                             asyncio.run(self.bluetooth_server.write_data_only_to_storage(close_peaks, 'hea9'))
 
                             self.bluetooth_server.write_data_only_to_storage(close_disturbing_peaks, 'hea10')
-#                             asyncio.run(self.bluetooth_server.write_data_only_to_storage(close_disturbing_peaks, 'hea10'))
 
                             found_peak_index = np.argmax(np.array(self.peak_weighted))
                             found_heart_freq = peak_freq[found_peak_index]
@@ -313,7 +309,6 @@ class SignalProcessing:
                                 old_heart_freq_list.pop(0)
 
                             self.bluetooth_server.write_data_only_to_storage(old_heart_freq_list, 'hea11')
-#                             asyncio.run(self.bluetooth_server.write_data_only_to_storage(old_heart_freq_list, 'hea11'))
 
                             if np.abs(np.mean(old_heart_freq_list[
                                               0:-2]) - found_heart_freq) > 0.1:  # too big change, probably noise or other disruptions
@@ -367,8 +362,6 @@ class SignalProcessing:
                         if measurement_data_stable_state:
                             self.bluetooth_server.write_data_to_app(
                                 str(found_heart_rate) + ' ' + found_peak_reliability, 'heart rate')  # Send to app
-#                             asyncio.run(self.bluetooth_server.write_data_to_app(
-#                                 str(found_heart_rate) + ' ' + found_peak_reliability, 'heart rate'))  # Send to app
 
                     else:
                         print("Waiting to find heart rate")
@@ -378,7 +371,6 @@ class SignalProcessing:
 
                     data_to_write_in_hea6 += str(found_heart_rate)
                     self.bluetooth_server.write_data_only_to_storage(data_to_write_in_hea6, 'hea6')
-#                     asyncio.run(self.bluetooth_server.write_data_only_to_storage(data_to_write_in_hea6, 'hea6'))
 
                     # BPM_search = self.freq * 60 # Used where?
                     # print("past plot heart rate")
@@ -575,9 +567,7 @@ class SignalProcessing:
                         movavgHRdata.append(pval)
                         movavgHRdata.append(val)
                         self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-2]) + ',,,,,,', 'bpint')
-#                         asyncio.run(self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-2]) + ',,,,,,', 'bpint'))
                         self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-1]) + ',,,,,,', 'bpint')
-#                         asyncio.run(self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-1]) + ',,,,,,', 'bpint'))
                         break
 
 #             while self.go:
@@ -585,7 +575,6 @@ class SignalProcessing:
                     val = self.HR_filtered_queue_movavg.get()
                     movavgHRdata.append(val)
                     self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-1]) + ',,,,,,', 'bpint')
-#                     asyncio.run(self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-1]) + ',,,,,,', 'bpint'))
 
                     if movavgHRdata[-2] >= 0 and movavgHRdata[-1] < 0:
                         idx0 = len(movavgHRdata)
@@ -629,16 +618,12 @@ class SignalProcessing:
                             count_bp_data += 1
                         if count_bp_data >= self.window_size_for_bp_movavg:
                             self.bluetooth_server.write_data_to_app(
-#                             asyncio.run(self.bluetooth_server.write_data_to_app(
                                 str(sbp) + ' ' + str(mbp) + ' ' + str(dbp) + ' ' \
                                  + str(sbp_movavg) + ' ' + str(mbp_movavg) + ' ' + str(dbp_movavg), 'blood pressure')  # Send to app
-#                                + str(sbp_movavg) + ' ' + str(mbp_movavg) + ' ' + str(dbp_movavg), 'blood pressure'))  # Send to app
                         self.bluetooth_server.write_data_only_to_storage(
-#                         asyncio.run(self.bluetooth_server.write_data_only_to_storage(
                             str(movavgHRdata[-1]) + ',' \
                             + str(idxpeak0) + ',' + str(idxbottom) + ',' + str(idxpeak1) + ',' \
                             + str(sbp) + ',' + str(mbp) + ',' + str(dbp), 'bpint')
-#                             + str(sbp) + ',' + str(mbp) + ',' + str(dbp), 'bpint'))
                         state = 0
                         del movavgHRdata[0 : idx1 - 2]
                         idx0 = len(movavgHRdata) - 1
@@ -656,7 +641,6 @@ class SignalProcessing:
                     movavgHRdata.append(val)
                     if not (state == 1 and movavgHRdata[-2] >= 0 and movavgHRdata[-1] < 0):
                         self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-1]) + ',,,,,,', 'bpint')
-#                         asyncio.run(self.bluetooth_server.write_data_only_to_storage(str(movavgHRdata[-1]) + ',,,,,,', 'bpint'))
 
                     sv.clc_elpsd_tim(sv.list_of_variables_for_threads["f_sgp_bpe_prctim_csv"], dt_stlp, "blood_pressure()_while_loop_time")
 #                     sv.clc_elpsd_tim(self.bluetooth_server, "sgp_bpe_prctim", dt_stlp, "blood_pressure()_while_loop_time")
@@ -710,7 +694,6 @@ class SignalProcessing:
 #                     if self.time_when_sent_last_value is not None and (time.time() - self.time_when_sent_last_value > 14):
 #                         # sends zero as breath rate if no value was found the last fourteen seconds
                         self.bluetooth_server.write_data_to_app(0, 'breath rate')
-#                         asyncio.run(self.bluetooth_server.write_data_to_app(0, 'breath rate'))
 #                         # sends last breath rate if no value was found the last ten seconds
 #                         self.bluetooth_server.write_data_to_app(respiratory_rate_data, 'breath rate')
                         self.time_when_sent_last_value = time.time()
@@ -778,7 +761,6 @@ class SignalProcessing:
                             # Do not notify clients until measurement data is stable
                             if measurement_data_stable_state:
                                 self.bluetooth_server.write_data_to_app(respiratory_rate_data, 'breath rate')
-#                                 asyncio.run(self.bluetooth_server.write_data_to_app(respiratory_rate_data, 'breath rate'))
                             self.time_when_sent_last_value = time.time()
                             # done = time.time() # verkar ta lite tid, troligtvis på grund av getMeanOfFrequency
                             # print('send to app', (done - start)*1000)
@@ -795,7 +777,6 @@ class SignalProcessing:
                     data_to_write_in_sch += str(FHighRR) + " " + str(FLowRR) + " " + str(respiratory_rate_data) + " " + \
                                             str(schNy) + " " + str(schGa) + " " + str(count)
                     self.bluetooth_server.write_data_only_to_storage(data_to_write_in_sch, 'sch')
-#                     asyncio.run(self.bluetooth_server.write_data_only_to_storage(data_to_write_in_sch, 'sch'))
 
                     schGa = schNy
                     count += 1

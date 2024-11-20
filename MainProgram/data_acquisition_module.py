@@ -28,7 +28,6 @@ import acconeer.exptool as et
 
 import shared_variables as sv
 import pandas as pd
-# import asyncio
 
 # disable the timer
 # timer_event = threading.Event()
@@ -251,7 +250,6 @@ class DataAcquisition(threading.Thread):
                                             str(bandpass_filtered_data_HR_movavg) + ' ' + \
                                             str(bandpass_filtered_data_RR)
                             self.bluetooth_server.write_data_only_to_storage(data_to_write, 'raw')
-#                             asyncio.run(self.bluetooth_server.write_data_only_to_storage(data_to_write, 'raw'))
 
                     sv.print_memory_full_info(self.bluetooth_server, sv.list_of_variables_for_threads["f_mem_csv"], 'run:before_bandpass_filtered_data_HR_put')
                     self.HR_filtered_queue.put(
@@ -283,8 +281,6 @@ class DataAcquisition(threading.Thread):
                         if sv.list_of_variables_for_threads["is_measuring"]:
                             self.bluetooth_server.write_data_to_app(
                                 tracked_data["real time breathing amplitude"], 'real time breath')
-#                             asyncio.run(self.bluetooth_server.write_data_to_app(
-#                                 tracked_data["real time breathing amplitude"], 'real time breath'))
                         # self.bluetooth_server.write_data_to_app(
                         #    bandpass_filtered_data_HR, 'real time breath')
 
@@ -358,8 +354,6 @@ class DataAcquisition(threading.Thread):
 #                                        str(info[0]["data_saturated"]) + ' ' + \
 #                                        str(info[0]["missed_data"]) + ' ' + \
 #                                        str(info[0]["data_quality_warning"])
-# #                 self.bluetooth_server.write_data_only_to_storage(data_to_write_in_daq, 'info')
-#                 asyncio.run(self.bluetooth_server.write_data_only_to_storage(data_to_write_in_daq, 'info'))
         return data
 
     def tracking(self, data):

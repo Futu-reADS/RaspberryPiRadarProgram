@@ -13,7 +13,6 @@ import datetime
 import shared_variables as sv
 import pandas as pd
 import numpy as np
-# import asyncio
 
 
 class BluetoothServer:
@@ -64,7 +63,6 @@ class BluetoothServer:
 
         self.filename_rec_csv = ''
         self.f_rec_csv = None
-#         self.user_serial_number = 1  # 現時点では1固定(実際にはスマホから送ってもらう)
         self.user_serial_number = ''
 
         self.is_first_write_data_to_app_call_for_hr = True  # Initialize
@@ -231,36 +229,24 @@ class BluetoothServer:
 
                         # CSVファイルクローズ処理
                         self.write_to_csv(self.df_hr, self.filename_hr_csv)  # CSV file for heart rate
-#                         asyncio.run(self.close_csv(self.df_hr, self.filename_hr_csv))  # CSV file for heart rate
                         self.write_to_csv(self.df_rr, self.filename_rr_csv)  # CSV file for respiration rate
-#                         asyncio.run(self.close_csv(self.df_rr, self.filename_rr_csv))  # CSV file for respiration rate
                         self.write_to_csv(self.df_rtb, self.filename_rtb_csv)  # CSV file for real time breath
-#                         asyncio.run(self.close_csv(self.df_rtb, self.filename_rtb_csv))  # CSV file for real time breath
                         self.write_to_csv(self.df_bp, self.filename_bp_csv)  # CSV file for blood pressure
-#                         asyncio.run(self.close_csv(self.df_bp, self.filename_bp_csv))  # CSV file for blood pressure
 
                         self.write_to_csv(self.df_raw, self.filename_raw_csv)  # CSV file for tracked data
-#                         asyncio.run(self.close_csv(self.df_raw, self.filename_raw_csv))  # CSV file for tracked data
                         self.write_to_csv(self.df_bpint, self.filename_bpint_csv)  # CSV file for blood_pressure() internal data
-#                         asyncio.run(self.close_csv(self.df_bpint, self.filename_bpint_csv))  # CSV file for blood_pressure() internal data
 #                         self.df_hea1.to_csv(filepath + date_time + '/log_hea1_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (fft_signal_out)  # for debug
 #                         self.df_hea2.to_csv(filepath + date_time + '/log_hea2_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (fft_signal_out_dB)  # for debug
                         self.write_to_csv(self.df_hea3, self.filename_hea3_csv)  # CSV file for heart_rate() internal data (FFT_averaged)  # for debug
-#                         asyncio.run(self.close_csv(self.df_hea3, self.filename_hea3_csv))  # CSV file for heart_rate() internal data (FFT_averaged)  # for debug
 #                         self.df_hea4.to_csv(filepath + date_time + '/log_hea4_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (peak_freq)
 #                         self.df_hea5.to_csv(filepath + date_time + '/log_hea5_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (peak_amplitude)
                         self.write_to_csv(self.df_hea6, self.filename_hea6_csv)  # CSV file for heart_rate() internal data (found_peak_index)
-#                         asyncio.run(self.close_csv(self.df_hea6, self.filename_hea6_csv))  # CSV file for heart_rate() internal data (found_peak_index)
 #                         self.df_hea7.to_csv(filepath + date_time + '/log_hea7_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (multiplication_factor)
 #                         self.df_hea8.to_csv(filepath + date_time + '/log_hea8_' + date_time + '.csv', index=False)  # CSV file for heart_rate() internal data (peak_weighted)
                         self.write_to_csv(self.df_hea9, self.filename_hea9_csv)  # CSV file for heart_rate() internal data (close_peaks)
-#                         asyncio.run(self.close_csv(self.df_hea9, self.filename_hea9_csv))  # CSV file for heart_rate() internal data (close_peaks)
                         self.write_to_csv(self.df_hea10, self.filename_hea10_csv)  # CSV file for heart_rate() internal data (close_disturbing_peaks)
-#                         asyncio.run(self.close_csv(self.df_hea10, self.filename_hea10_csv))  # CSV file for heart_rate() internal data (close_disturbing_peaks)
                         self.write_to_csv(self.df_hea11, self.filename_hea11_csv)  # CSV file for heart_rate() internal data (old_heart_freq_list)  # for debug
-#                         asyncio.run(self.close_csv(self.df_hea11, self.filename_hea11_csv))  # CSV file for heart_rate() internal data (old_heart_freq_list)  # for debug
                         self.write_to_csv(self.df_sch, self.filename_sch_csv)  # CSV file for schmittTrigger() internal data
-#                         asyncio.run(self.close_csv(self.df_sch, self.filename_sch_csv))  # CSV file for schmittTrigger() internal data
 
                         self.f_daq_run_prctim_csv.close()
                         self.f_sgp_hre_prctim_csv.close()
@@ -619,9 +605,7 @@ class BluetoothServer:
             columns_lst_for_hr = self.df_hr.columns.values.tolist()
             if self.df_hr.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                 self.write_to_csv(self.df_hr, self.filename_hr_csv)
-#                 await self.write_to_csv(self.df_hr, self.filename_hr_csv)
                 self.df_hr = pd.DataFrame(columns=columns_lst_for_hr)
-#             await asyncio.sleep(0.01)
 
         elif data_type == 'breath rate':
             string = ' RR ' + str(data) + ' '
@@ -645,9 +629,7 @@ class BluetoothServer:
             columns_lst_for_rr = self.df_rr.columns.values.tolist()
             if self.df_rr.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                 self.write_to_csv(self.df_rr, self.filename_rr_csv)
-#                 await self.write_to_csv(self.df_rr, self.filename_rr_csv)
                 self.df_rr = pd.DataFrame(columns=columns_lst_for_rr)
-#             await asyncio.sleep(0.01)
 
         elif data_type == 'real time breath':
             string = ' RTB ' + str(data) + ' '
@@ -670,9 +652,7 @@ class BluetoothServer:
             columns_lst_for_rtb = self.df_rtb.columns.values.tolist()
             if self.df_rtb.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                 self.write_to_csv(self.df_rtb, self.filename_rtb_csv)
-#                 await self.write_to_csv(self.df_rtb, self.filename_rtb_csv)
                 self.df_rtb = pd.DataFrame(columns=columns_lst_for_rtb)
-#             await asyncio.sleep(0.01)
 
         elif data_type == 'blood pressure':
             data_ = data.split()
@@ -702,9 +682,7 @@ class BluetoothServer:
             columns_lst_for_bp = self.df_bp.columns.values.tolist()
             if self.df_bp.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                 self.write_to_csv(self.df_bp, self.filename_bp_csv)
-#                 await self.write_to_csv(self.df_bp, self.filename_bp_csv)
                 self.df_bp = pd.DataFrame(columns=columns_lst_for_bp)
-#             await asyncio.sleep(0.01)
 
 #         if data_type == 'heart rate':
 #             msg = 'write_data_to_app:after_heart_rate'
@@ -746,9 +724,7 @@ class BluetoothServer:
             columns_lst_for_raw = self.df_raw.columns.values.tolist()
             if self.df_raw.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                 self.write_to_csv(self.df_raw, self.filename_raw_csv)
-#                 await self.write_to_csv(self.df_raw, self.filename_raw_csv)
                 self.df_raw = pd.DataFrame(columns=columns_lst_for_raw)
-#             await asyncio.sleep(0.01)
 
         elif data_type == 'bpint':
             data_lst = data_to_write.split(',')
@@ -772,9 +748,7 @@ class BluetoothServer:
             columns_lst_for_bpint = self.df_bpint.columns.values.tolist()
             if self.df_bpint.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                 self.write_to_csv(self.df_bpint, self.filename_bpint_csv)
-#                 await self.write_to_csv(self.df_bpint, self.filename_bpint_csv)
                 self.df_bpint = pd.DataFrame(columns=columns_lst_for_bpint)
-#             await asyncio.sleep(0.01)
 
 #         elif data_type == 'daq_run_prctim' or data_type == 'sgp_hre_prctim' or data_type == 'sbp_rre_prctim' or data_type == 'sgp_bpe_prctim':
 #             data_lst = data_to_write.split()
@@ -850,9 +824,7 @@ class BluetoothServer:
             columns_lst_for_hea6 = self.df_hea6.columns.values.tolist()
             if self.df_hea6.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                 self.write_to_csv(self.df_hea6, self.filename_hea6_csv)
-#                 await self.write_to_csv(self.df_hea6, self.filename_hea6_csv)
                 self.df_hea6 = pd.DataFrame(columns=columns_lst_for_hea6)
-#             await asyncio.sleep(0.01)
 
         elif data_type[0:3] == 'hea':
             new_data = {
@@ -913,9 +885,7 @@ class BluetoothServer:
                 columns_lst_for_hea3 = self.df_hea3.columns.values.tolist()
                 if self.df_hea3.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                     self.write_to_csv(self.df_hea3, self.filename_hea3_csv)
-#                     await self.write_to_csv(self.df_hea3, self.filename_hea3_csv)
                     self.df_hea3 = pd.DataFrame(columns=columns_lst_for_hea3)
-#                 await asyncio.sleep(0.01)
 #             elif data_type == 'hea4':
 #                 self.df_hea4 = pd.concat([self.df_hea4, new_data_df], axis=0, ignore_index=True)
 #             elif data_type == 'hea5':
@@ -933,9 +903,7 @@ class BluetoothServer:
                 columns_lst_for_hea9 = self.df_hea9.columns.values.tolist()
                 if self.df_hea9.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                     self.write_to_csv(self.df_hea9, self.filename_hea9_csv)
-#                     await self.write_to_csv(self.df_hea9, self.filename_hea9_csv)
                     self.df_hea9 = pd.DataFrame(columns=columns_lst_for_hea9)
-#                 await asyncio.sleep(0.01)
             elif data_type == 'hea10':
                 if self.is_first_write_data_only_to_storage_call_for_hea10:
                     self.df_hea10 = new_data_df
@@ -945,9 +913,7 @@ class BluetoothServer:
                 columns_lst_for_hea10 = self.df_hea10.columns.values.tolist()
                 if self.df_hea10.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                     self.write_to_csv(self.df_hea10, self.filename_hea10_csv)
-#                     await self.write_to_csv(self.df_hea10, self.filename_hea10_csv)
                     self.df_hea10 = pd.DataFrame(columns=columns_lst_for_hea10)
-#                 await asyncio.sleep(0.01)
             elif data_type == 'hea11':
                 if self.is_first_write_data_only_to_storage_call_for_hea11:
                     self.df_hea11 = new_data_df
@@ -957,9 +923,7 @@ class BluetoothServer:
                 columns_lst_for_hea11 = self.df_hea11.columns.values.tolist()
                 if self.df_hea11.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                     self.write_to_csv(self.df_hea11, self.filename_hea11_csv)
-#                     await self.write_to_csv(self.df_hea11, self.filename_hea11_csv)
                     self.df_hea11 = pd.DataFrame(columns=columns_lst_for_hea11)
-#                 await asyncio.sleep(0.01)
 
         elif data_type == 'sch':
             data_lst = data_to_write.split()
@@ -992,16 +956,10 @@ class BluetoothServer:
             columns_lst_for_sch = self.df_sch.columns.values.tolist()
             if self.df_sch.memory_usage(deep=True).sum() > self.df_memusg_lmt:
                 self.write_to_csv(self.df_sch, self.filename_sch_csv)
-#                 await self.write_to_csv(self.df_sch, self.filename_sch_csv)
                 self.df_sch = pd.DataFrame(columns=columns_lst_for_sch)
-#             await asyncio.sleep(0.01)
 
 #         msg = 'write_data_only_to_storage:after_' + data_type
 #         sv.print_memory_full_info(self.f_mem_csv, msg)
-
-#     async def close_csv(self, df, filename):
-#         await self.write_to_csv(df, filename)
-#         await asyncio.sleep(0.01)
 
     def send_data(self, write):
         # print('Send data: ' + write)
