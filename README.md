@@ -10,6 +10,8 @@ Following scripts and modules are available:
   Module to host the Bluetooth server. Can connect up to seven devices. Every connection starts a new thread to read incoming commands.
 - `data_acquisition_module.py`\
   Module to acquire radar data. Tracks the highest peak to calculate relative distance movements from the phase.
+- `external_program_controller.py`\
+  Module to control external programs. It starts external programs that control the radar sensor as sub-processes and acquires data.
 - `signal_processing_module.py`\
   Module to signal process the relative movements to obtain heart rate and respiratory rate with Schmitt trigger and FFT.
 - `filter.py`\

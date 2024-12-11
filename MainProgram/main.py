@@ -18,6 +18,7 @@ import data_acquisition_module          # Import class which collects and filter
 import signal_processing_module
 
 import shared_variables as sv
+import external_program_controller
 
 def main():
     time.sleep(10)
@@ -82,7 +83,7 @@ def main():
                                         "f_sgp_hre_prctim_csv": None,
                                         "f_sgp_rre_prctim_csv": None,
                                         "f_sgp_bpe_prctim_csv": None,
-                                        "f_info_csv": None,
+#                                         "f_info_csv": None,
                                         "f_mem_csv": None,
                                         "current_date_time": None}
     FFTfreq = [1, 2, 3]
@@ -98,10 +99,15 @@ def main():
 #     bluetooth_server = bluetooth_server_module.BluetoothServer(list_of_variables_for_threads)
     bluetooth_server = bluetooth_server_module.BluetoothServer()
 
+    # The ExternalProgramController object launches and controls an external C program as a thread.
+    extrnl_prgrm_cntrllr = external_program_controller.ExternalProgramController(os.getenv('EXTERNAL_PROGRAM_FILE_PATH'))
+    extrnl_prgrm_cntrllr.start_program()
+
     # Starts thread of run() method in DataAcquisition class
 #     data_acquisition = data_acquisition_module.DataAcquisition(
 #         list_of_variables_for_threads, bluetooth_server)
-    data_acquisition = data_acquisition_module.DataAcquisition(bluetooth_server)
+#     data_acquisition = data_acquisition_module.DataAcquisition(bluetooth_server)
+    data_acquisition = data_acquisition_module.DataAcquisition(bluetooth_server, extrnl_prgrm_cntrllr)
     data_acquisition.start()
 
     # SignalProcessing object used below
@@ -155,6 +161,10 @@ def main():
         #print(FFTfreq, FFTamplitude)
 
     # Waits for running threads to finish their loops
+
+    extrnl_prgrm_cntrllr.stop_program()
+    print("external_program_controller is closed")
+
     bluetooth_server.connect_device_thread.join()
     print("bluetooth_server is closed")
     signal_processing.heart_rate_thread.join()

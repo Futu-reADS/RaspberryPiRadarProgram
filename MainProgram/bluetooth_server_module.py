@@ -252,7 +252,7 @@ class BluetoothServer:
                         self.f_sgp_hre_prctim_csv.close()
                         self.f_sgp_rre_prctim_csv.close()
                         self.f_sgp_bpe_prctim_csv.close()
-                        self.f_info_csv.close()
+#                         self.f_info_csv.close()
                         self.f_mem_csv.close()
 #                         self.df_daq_run_prctim.to_csv(self.filename_daq_run_prctim_csv, mode='a', index=False)
 #                         self.df_sgp_hre_prctim.to_csv(self.filename_sgp_hre_prctim_csv, mode='a', index=False)
@@ -489,7 +489,7 @@ class BluetoothServer:
 #                     self.df_sgp_rre_prctim = pd.DataFrame(columns=["date", "time", "processing_time[ms]", "remark"])
                     self.f_sgp_bpe_prctim_csv = open(filename_sgp_bpe_prctim_csv, 'w')
 #                     self.df_sgp_bpe_prctim = pd.DataFrame(columns=["date", "time", "processing_time[ms]", "remark"])
-                    self.f_info_csv = open(filename_info_csv, 'w')
+#                     self.f_info_csv = open(filename_info_csv, 'w')
 #                     self.df_info = pd.DataFrame(columns=["date", "time", "tick", "data_saturated", "missed_data", "data_quality_warning"])
                     self.f_mem_csv = open(filename_mem_csv, 'w')
 #                     self.df_mem = pd.DataFrame(columns=["date", "time", "rss", "vms", "shared", "text", "lib", "data", "dirty", "uss", "pss", "swap", "remark"])
@@ -502,8 +502,8 @@ class BluetoothServer:
                         self.f_sgp_rre_prctim_csv.write('date time processing_time[ms] remark\n')
                     if not self.f_sgp_bpe_prctim_csv.closed:
                         self.f_sgp_bpe_prctim_csv.write('date time processing_time[ms] remark\n')
-                    if not self.f_info_csv.closed:
-                        self.f_info_csv.write('date time tick data_saturated missed_data data_quality_warning\n')
+#                     if not self.f_info_csv.closed:
+#                         self.f_info_csv.write('date time tick data_saturated missed_data data_quality_warning\n')
                     if not self.f_mem_csv.closed:
                         self.f_mem_csv.write('date time df_hr df_rr df_rtb df_raw df_bp df_bpint df_hea3 df_hea9 df_hea10 df_hea11 df_hea6 df_sch df_total rss vms shared text lib data dirty uss pss swap remark\n')
 
@@ -511,7 +511,7 @@ class BluetoothServer:
                     sv.list_of_variables_for_threads["f_sgp_hre_prctim_csv"] = self.f_sgp_hre_prctim_csv
                     sv.list_of_variables_for_threads["f_sgp_rre_prctim_csv"] = self.f_sgp_rre_prctim_csv
                     sv.list_of_variables_for_threads["f_sgp_bpe_prctim_csv"] = self.f_sgp_bpe_prctim_csv
-                    sv.list_of_variables_for_threads["f_info_csv"] = self.f_info_csv
+#                     sv.list_of_variables_for_threads["f_info_csv"] = self.f_info_csv
                     sv.list_of_variables_for_threads["f_mem_csv"] = self.f_mem_csv
 
                     # Measurement start time recording process
