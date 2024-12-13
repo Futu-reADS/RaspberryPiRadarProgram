@@ -4,6 +4,7 @@ import time
 import queue
 import numpy as np
 import os
+import shared_variables as sv
 
 class ExternalProgramController:
     def __init__(self, program_path):
@@ -11,6 +12,8 @@ class ExternalProgramController:
         self.process = None
         self.thread = None
         self.output_queue = queue.Queue()
+        self.status_thread = None
+        self.running = True
         
     def start_program(self):
         self.process = subprocess.Popen(
@@ -23,6 +26,8 @@ class ExternalProgramController:
         self.thread = threading.Thread(target=self.read_output)
         self.thread.start()
 #         print(" /// read_output thread starts. /// ")  # for debug
+        self.status_thread = threading.Thread(target=self.check_process_status)
+        self.status_thread.start()
         
     def read_output(self):
         while True:
@@ -75,6 +80,19 @@ class ExternalProgramController:
             self.thread.join()
             self.process.terminate()
             self.process.wait()
+            self.running = False
+            self.status_thread.join()
+
+    def check_process_status(self):
+        while self.running:
+            if self.process.poll() is not None:
+                if self.process.returncode != 0:
+                    print(f"External program terminated with exit code {self.process.returncode}")
+                    sv.save_error_messages_to_a_log_file('[ERROR]', f"External program terminated with exit code {self.process.returncode}")
+                    sv.list_of_variables_for_threads["terminate_yet"] = []
+                    sv.list_of_variables_for_threads["extrnl_prgrm_ftl_err"] = []
+                self.running = False
+            time.sleep(1)
 
 if __name__ == "__main__":
     controller = ExternalProgramController(os.getenv('EXTERNAL_PROGRAM_FILE_PATH'))

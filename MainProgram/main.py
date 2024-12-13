@@ -19,6 +19,7 @@ import signal_processing_module
 
 import shared_variables as sv
 import external_program_controller
+import sys
 
 def main():
     time.sleep(10)
@@ -45,6 +46,7 @@ def main():
     shutdown_yet = ["Yes"]      # Used to indicate not yet shut down
     terminate_yet = ["Yes"]     # Used to indicate that the program is not exiting yet
     is_measuring = []           # Used to indicate that a measurement is in progress
+    extrnl_prgrm_ftl_err = ["No"]  # Uset to indicate external program no fatal error
 
     run_measurement = []        # Determines if data is being sent to devices or not
     sample_freq = 0         # Value is updated in DataAcquisition. Needs to be the same in the whole program
@@ -71,6 +73,7 @@ def main():
                                         "shutdown_yet": shutdown_yet,
                                         "terminate_yet": terminate_yet,
                                         "is_measuring": is_measuring,
+                                        "extrnl_prgrm_ftl_err": extrnl_prgrm_ftl_err,
                                         "HR_filtered_queue_movavg": HR_filtered_queue_movavg,
                                         "F_scan_lower": F_scan_lower,
                                         "F_scan_upper": F_scan_upper,
@@ -180,6 +183,12 @@ def main():
         print('Shut down succeed')
         #subprocess.call(["sudo", "shutdown", "-r", "now"])         # Terminal command for shutting down Raspberry Pi
         os.system("sudo shutdown -h now")
+
+    extrnl_prgrm_ftl_err = sv.list_of_variables_for_threads["extrnl_prgrm_ftl_err"]
+    if extrnl_prgrm_ftl_err:
+        sys.exit(0)
+    else:
+        sys.exit(1)
 
 
 if __name__ == "__main__":      # Required for making main method the used main-method

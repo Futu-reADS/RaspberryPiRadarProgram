@@ -163,7 +163,8 @@ class BluetoothServer:
         thread_list = []  # List which adds devices
         self.server.listen(7)  # Amount of devices that can simultaniously recive data.
 #         while self.go:
-        while self.terminate_yet:
+#         while self.terminate_yet:
+        while self.terminate_yet and sv.list_of_variables_for_threads["terminate_yet"]:
             # Loop which takes listens for a new device, adds it to our list
             # and starts a new thread for listening on input from device
             try:
@@ -184,7 +185,9 @@ class BluetoothServer:
             print(thread_list[-1].is_alive())
             print("New client: ", a)
 
-        print("Out of while True in connect device")
+        self.terminate_yet = []
+        sv.list_of_variables_for_threads["terminate_yet"] = []
+
         # Gracefully close all device threads
         for thread in thread_list:
 #             print(str(thread.getName()) + str(thread.isAlive()))
@@ -202,7 +205,7 @@ class BluetoothServer:
 #             filepath = '/media/futu-re/05E2-E73B/'
             date_time = ''
 #             while self.go:
-            while self.terminate_yet:
+            while self.terminate_yet and sv.list_of_variables_for_threads["terminate_yet"]:
                 data = c.recv(1024)  # Input argument from device
                 data = data.decode('utf-8')
                 data = data.strip()
@@ -289,13 +292,14 @@ class BluetoothServer:
                         print('self.go = ' + str(self.go))  # for debug
 #                         self.go.pop(0)
 
-                        print('self.terminate_yet = ' + str(self.terminate_yet))  # for debug
-                        self.terminate_yet.pop(0)
-                        print('self.shutdown_yet = ' + str(self.shutdown_yet))  # for debug
+#                         print('self.terminate_yet = ' + str(self.terminate_yet))  # for debug
+                        if self.terminate_yet:
+                            self.terminate_yet.pop(0)
+#                         print('self.shutdown_yet = ' + str(self.shutdown_yet))  # for debug
                         if data == 'poweroff':
-                            print('self.shutdown_yet = ' + str(self.shutdown_yet))  # for debug
+#                             print('self.shutdown_yet = ' + str(self.shutdown_yet))  # for debug
                             self.shutdown_yet.pop(0)
-                            print('self.shutdown_yet = ' + str(self.shutdown_yet))  # for debug
+#                             print('self.shutdown_yet = ' + str(self.shutdown_yet))  # for debug
 
                         print("go= " + str(self.go))
 
@@ -536,7 +540,7 @@ class BluetoothServer:
                     self.is_measuring = ["True"]
                     sv.list_of_variables_for_threads["is_measuring"] = self.is_measuring
 
-                    print("BluetoothServerModule: self.go = " + str(self.go))  # for debug
+#                     print("BluetoothServerModule: self.go = " + str(self.go))  # for debug
 
                 elif data == 'write':
                     print("Bluetooth Write started")
