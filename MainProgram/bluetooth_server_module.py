@@ -216,11 +216,13 @@ class BluetoothServer:
 
                     if data == 'poweroff':
                         print("Shutdown starting")
+                        sv.save_error_messages_to_a_log_file('[INFO]', f"poweroff command is given")
                         print("shutdown_yet= " + str(self.shutdown_yet))
                         print('sv.list_of_variables_for_threads["shutdown_yet"] = ' + str(sv.list_of_variables_for_threads["shutdown_yet"]))  # for debug
-                    elif data == 'date -s ':
+                    elif data[0:8] == 'date -s ':
                         os.system("sudo " + data)  # TODO
                         print("date and time synchronized")
+                        sv.save_error_messages_to_a_log_file('[INFO]', f"Time synchronization instruction ({data})")
                     elif  data == 'stopMeasure':
                         if c in self.run_measurement:
                             self.run_measurement.remove(c)
